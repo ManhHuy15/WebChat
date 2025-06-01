@@ -11,7 +11,7 @@ namespace BusinessObjects
     {
         public int GroupId { get; set; }
         public int UserId { get; set; }
-        public DateTime JoinedAt { get; set; }
+        public DateTime JoinedAt { get; set; } = DateTime.Now;
 
         public virtual Group Group { get; set; }
         public virtual User User { get; set; }

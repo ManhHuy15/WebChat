@@ -14,7 +14,7 @@ namespace BusinessObjects
         [Required]
         public int UserId { get; set; }
         public bool IsRead { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         public virtual Message Message { get; set; }
         public virtual User User { get; set; }

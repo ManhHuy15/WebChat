@@ -8,9 +8,12 @@ using System.Threading.Tasks;
 
 namespace BusinessObjects
 {
-    public class ChatingContext : DbContext
+    public class WebChatContext : DbContext
     {
-        public ChatingContext() { }
+        public WebChatContext(DbContextOptions<WebChatContext> options) : base(options)
+        {
+        }
+        public WebChatContext () { }
         public DbSet<User> Users { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<GroupMember> GroupMembers { get; set; }
@@ -35,6 +38,10 @@ namespace BusinessObjects
             {
                 entity.HasKey(fs => new { fs.UserId, fs.FriendId });
 
+                entity.Property(fs => fs.UpdateAt)
+                      .ValueGeneratedOnAddOrUpdate()
+                      .HasDefaultValueSql("GETDATE()");
+
                 entity.HasOne(fs => fs.User)
                       .WithMany(u => u.SenderFriendShips)
                       .HasForeignKey(fs => fs.UserId)
@@ -51,6 +58,9 @@ namespace BusinessObjects
             {
                 entity.HasKey(gm => new { gm.GroupId, gm.UserId });
 
+                entity.Property(gm => gm.JoinedAt)
+                      .HasDefaultValueSql("GETDATE()");
+
                 entity.HasOne(gm => gm.Group)
                       .WithMany(g => g.GroupMembers)
                       .HasForeignKey(gm => gm.GroupId);
@@ -63,6 +73,9 @@ namespace BusinessObjects
             modelBuilder.Entity<MessageStatus>(entity =>
             {
                 entity.HasKey(ms => new { ms.MessageId, ms.UserId });
+                entity.Property(ms => ms.UpdatedAt)
+                      .HasDefaultValueSql("GETDATE()");
+
                 entity.HasOne(ms => ms.Message)
                       .WithMany(m => m.MessageStatuses)
                       .HasForeignKey(ms => ms.MessageId);
@@ -72,6 +85,9 @@ namespace BusinessObjects
             });
 
             modelBuilder.Entity<Message>(entity => {
+                entity.Property(m => m.SentAt)
+                      .HasDefaultValueSql("GETDATE()");
+
                 entity.HasOne(m => m.Sender)
                       .WithMany(u => u.SenderMessages)
                       .HasForeignKey(m => m.SenderId)
@@ -88,7 +104,11 @@ namespace BusinessObjects
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-
+            modelBuilder.Entity<Group>(entity =>
+            {
+                entity.Property(g => g.CreatedAt)
+                      .HasDefaultValueSql("GETDATE()");
+            });
         }
 
     }

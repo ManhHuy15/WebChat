@@ -20,7 +20,7 @@ namespace BusinessObjects
 
         [Required]
         public string Content { get; set; }
-        public DateTime SentAt { get; set; }
+        public DateTime SentAt { get; set; } = DateTime.Now;
         public int Type { get; set; }
 
         public virtual User Sender { get; set; } = new User();

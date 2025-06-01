@@ -17,7 +17,7 @@ namespace BusinessObjects
 
         [Required, MaxLength(150)]
         public string Name { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
         public int AdminId { get; set; }
         public bool IsPrivate { get; set; }
 

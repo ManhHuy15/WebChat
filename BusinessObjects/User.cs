@@ -27,7 +27,7 @@ namespace BusinessObjects
 
         [Required, MaxLength(255)]
         public string Password { get; set; }
-        public DateTime LastActive { get; set; }
+        public DateTime LastActive { get; set; } 
         public bool IsOnline { get; set; }
         public int Role { get; set; }
         public string? RefreshToken { get; set; }

@@ -10,7 +10,7 @@ namespace BusinessObjects
     {
         public int UserId { get; set; }
         public int FriendId { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime UpdateAt { get; set; } = DateTime.Now;
         public int Status { get; set; }
 
         public virtual User User { get; set; }
