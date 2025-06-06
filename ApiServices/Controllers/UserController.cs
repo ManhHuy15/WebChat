@@ -18,7 +18,7 @@ namespace ApiServices.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok(_userService.GetAllUsers());
+            return Ok();
         }
     }
 }

@@ -16,22 +16,26 @@ namespace BusinessObjects
 
         [Required,MaxLength(150)]
         public string FullName { get; set; }
-        [Required, MaxLength(10)]
-        public string Phone { get; set; }
+        [MaxLength(10)]
+        public string? Phone { get; set; }
 
         [Required, MaxLength(150)]
         public string Email { get; set; }
 
-        [Required, MaxLength(150)]
-        public string UserName { get; set; }
+        [MaxLength(150)]
+        public string? UserName { get; set; }
+
+        public DateOnly Birth { get; set; }
+
+        public bool Gender { get; set; }
 
         [Required, MaxLength(255)]
         public string Password { get; set; }
-        public DateTime LastActive { get; set; } 
+        public DateTime? LastActive { get; set; } 
         public bool IsOnline { get; set; }
         public int Role { get; set; }
         public string? RefreshToken { get; set; }
-        public DateTime TokenExpires { get; set; }
+        public DateTime? TokenExpires { get; set; }
         public bool IsActive { get; set; }
 
         public virtual ICollection<FriendShip> SenderFriendShips { get; set; } = new List<FriendShip>();
