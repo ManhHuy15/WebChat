@@ -12,6 +12,10 @@ namespace BusinessObjects
     {
         [Key,DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int UserId { get; set; }
+
+        [MaxLength(25)]
+        public string? GoogleId { get; set; }
+
         public string? Avatar { get; set; }
 
         [Required,MaxLength(150)]
@@ -25,17 +29,23 @@ namespace BusinessObjects
         [MaxLength(150)]
         public string? UserName { get; set; }
 
-        public DateOnly Birth { get; set; }
+        public DateOnly? Birth { get; set; }
 
-        public bool Gender { get; set; }
+        public bool? Gender { get; set; }
 
         [Required, MaxLength(255)]
         public string Password { get; set; }
+
         public DateTime? LastActive { get; set; } 
+
         public bool IsOnline { get; set; }
+
         public int Role { get; set; }
+
         public string? RefreshToken { get; set; }
+
         public DateTime? TokenExpires { get; set; }
+
         public bool IsActive { get; set; }
 
         public virtual ICollection<FriendShip> SenderFriendShips { get; set; } = new List<FriendShip>();

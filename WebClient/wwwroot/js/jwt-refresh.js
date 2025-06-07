@@ -5,6 +5,7 @@
 'use strict';
 
 $(function () {
+    IsLogin();
     $(document).on("ajaxSend", function (event, jqxhr, settings) {
         if (settings.url === '/api/auth/refresh-token') {
             return;

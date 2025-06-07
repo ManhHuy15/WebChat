@@ -1,8 +1,12 @@
-﻿using DTOs.AuthenDTOs;
-using Microsoft.AspNetCore.Http;
+﻿using DTOs;
+using DTOs.AuthenDTOs;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
 using Services.AuthenServices.InterfaceAuthen;
-using Services.UserServices;
+using System.Net;
+using System.Security.Claims;
 
 namespace ApiServices.Authen
 {
@@ -46,5 +50,55 @@ namespace ApiServices.Authen
             }
         }
 
+
+        [HttpGet("google")]
+        public async Task<IActionResult> SignInGoogle()
+        {
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action("GoogleResponse")
+            };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet("GoogleResponse")]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            try
+            {
+                var response = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+                if (!response.Succeeded)
+                {
+                    return Unauthorized(new ResponseDTO<string>
+                    {
+                        status = HttpStatusCode.Unauthorized,
+                        success = false,
+                        message = "Unauthorized"
+                    });
+                }
+
+                var result = await _authService.SignInGoogle(response);
+
+                var html = $@"
+                        <script>
+                            window.opener.postMessage({{ 
+                                                        Status: '{result.status.GetHashCode()}',
+                                                        Email: '{result.data.Email}',
+                                                        AccessToken: '{result.data.AccessToken}',
+                                                        RefreshToken: '{result.data.RefreshToken}',
+                                                        TokenExpires: '{result.data.TokenExpires}'}},
+                                                        'http://localhost:5108');
+                            window.close();
+                        </script>
+                    ";
+
+                return Content(html, "text/html");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+          
+        }
     }
 }

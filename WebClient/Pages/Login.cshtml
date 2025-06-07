@@ -42,11 +42,11 @@
                             <hr class="my-4">
                             <div class="text-center">
                                 <p>or log in with:</p>
-                                <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-block btn-floating mx-1 text-white" style="background-color: #3b5998;">
+                                <button type="button" id="btnFacebook" data-mdb-button-init data-mdb-ripple-init class="btn btn-block btn-floating mx-1 text-white" style="background-color: #3b5998;">
                                     <i class="fab fa-facebook-f"></i>
                                 </button>
 
-                                <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-block btn-floating mx-1 text-white" style="background-color: #dd4b39;">
+                                <button type="button" id="btnGoogle" data-mdb-button-init data-mdb-ripple-init class="btn btn-block btn-floating mx-1 text-white" style="background-color: #dd4b39;">
                                     <i class="fab fa-google"></i>
                                 </button>
                             </div>
@@ -90,6 +90,7 @@
                             localStorage.setItem('access-token', result.data.accessToken);
                             localStorage.setItem('email', JSON.stringify(result.data.email));
                             localStorage.setItem('expires', result.data.TokenExpires);
+                            this.window.location.href = "/";
                         }else{
                             $('#error').text(result.message);
                         }
@@ -107,6 +108,24 @@
 			$('#password').on('focus', function () {
 				$('#error').text('');
 			});
+
+            $('#btnGoogle').on('click', function () {
+               window.open('http://localhost:5050/api/auth/google', '_blank', 'width=500,height=600');
+			});
+
+            window.addEventListener('message', function (event) {
+              if (event.origin !== "http://localhost:5050") return;
+
+              const result = event.data;
+              if (result && result.Status == 200 ) {
+                localStorage.setItem('refresh-token', result.RefreshToken);
+                localStorage.setItem('access-token', result.AccessToken);
+                localStorage.setItem('email', result.Email);
+                localStorage.setItem('expires', result.TokenExpires);
+                this.window.location.href = "/";
+			  }else{
+              }
+            });
         });
     </script>
 }

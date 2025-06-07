@@ -23,55 +23,12 @@
     </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"  ></script>
-    <script src="~/js/jwt-refresh.js" asp-append-version="true"></script>
     <!-- MDB -->
     <script type="text/javascript"
             src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/9.0.0/mdb.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
-    @* <script>
-        $(document).on("ajaxSend", function (event, jqxhr, settings) {
-            console.log(settings.url);
-            if (settings.url === '/api/auth/refresh-token') {
-                return;
-            }
-            var token = localStorage.getItem('access-token');
-            console.log(token);
-            if (token) {
-                if (isTokenExpired(token)) {
-                    refreshToken();
-                    console.log('token expired');
-                }
-                jqxhr.setRequestHeader('Authorization', 'Bearer ' + token);
-            }
-        });
-
-        function isTokenExpired(token) {
-            try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                const currentTime = Math.floor(Date.now() / 1000);
-                return payload.exp < currentTime;
-            } catch (e) {
-                return true;
-            }
-        }
-
-        function refreshToken() {
-            return $.ajax({
-                url: '/api/auth/refresh-token',
-                method: 'POST',
-                data: {
-                    refreshToken: localStorage.getItem('refresh-token')
-                }
-            }).then(function (response) {
-                localStorage.setItem('refresh-token', response.data.refreshToken);
-                localStorage.setItem('access-token', response.data.accessToken);
-                localStorage.setItem('email', JSON.stringify(response.data.email));
-            });
-        }
-    </script> *@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
