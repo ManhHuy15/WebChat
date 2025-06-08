@@ -7,7 +7,7 @@ namespace WebClient.Pages
     public class RegisterModel : PageModel
     {
         [BindProperty]
-        public RegisterUserDTOs RegisterUser { get; set; }
+        public RegisterUserDTO RegisterUser { get; set; }
         public void OnGet()
         {
         }

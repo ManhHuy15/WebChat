@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DTOs.AuthenDTOs
 {
-    public class RegisterUserDTOs
+    public class RegisterUserDTO
     {
 
         [Required(ErrorMessage = "Please enter your full name")]

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DTOs.AuthenDTOs
 {
-    public class UserLoginRequestDTOs
+    public class UserLoginRequestDTO
     {
         [Required(ErrorMessage = "Please enter your email")]
         public string Email { get; set; }

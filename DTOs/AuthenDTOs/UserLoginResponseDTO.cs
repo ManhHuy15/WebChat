@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DTOs.AuthenDTOs
 {
-    public class UserLoginResponseDTOs
+    public class UserLoginResponseDTO
     {
         public string? Email { get; set; }
         public string? AccessToken { get; set; }

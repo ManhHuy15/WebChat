@@ -21,7 +21,7 @@ namespace ApiServices.Authen
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login( [FromBody] UserLoginRequestDTOs userLogin)
+        public async Task<IActionResult> Login( [FromBody] UserLoginRequestDTO userLogin)
         {
             if(ModelState.IsValid == false) return BadRequest(ModelState);
             try
@@ -36,13 +36,27 @@ namespace ApiServices.Authen
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterUserDTOs userRegister)
+        public async Task<IActionResult> Register([FromBody] RegisterUserDTO userRegister)
         {
             if (ModelState.IsValid == false) return BadRequest(ModelState);
             try
             {
                 var response = await _authService.RegisterHandler(userRegister);
                 return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
+        {
+            try
+            {
+                var respone = await _authService.RefreshToken(refreshToken);
+                return Ok(respone);
             }
             catch (Exception ex)
             {

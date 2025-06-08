@@ -10,8 +10,8 @@ namespace Services.AuthenServices.InterfaceAuthen
 {
     public interface IJWTService
     {
-        Task<UserLoginResponseDTOs> AuthenticateUser(User loginUser);
-        Task<UserLoginResponseDTOs> AuthenticateUserWithRefreshToken(string RequsetRefreshToken);
+        Task<UserLoginResponseDTO> AuthenticateUser(User loginUser, bool isRefreshToken);
         string GenerateRefreshToken();
+        string GenerateJwtToken(User user);
     }
 }

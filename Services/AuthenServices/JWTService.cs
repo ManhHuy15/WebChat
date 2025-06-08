@@ -34,15 +34,35 @@ namespace Services.AuthenServices
         }
 
 
-        public async Task<UserLoginResponseDTOs> AuthenticateUser(User loginUser)
+        public async Task<UserLoginResponseDTO> AuthenticateUser(User user, bool isRefreshToken)
+        {
+            string jwtToken = GenerateJwtToken(user);
+
+            if (!isRefreshToken) {
+                user.RefreshToken = GenerateRefreshToken();
+                //user.TokenExpires = DateTime.Now.AddDays(7);
+               user.TokenExpires = _expiryTimesStamp;
+            }
+
+            await _userRepository.Update(user);
+
+            return new UserLoginResponseDTO
+            {
+                Email = user.Email,
+                AccessToken = jwtToken,
+                TokenExpires = (int)_expiryTimesStamp.Subtract(DateTime.Now).TotalSeconds,
+                RefreshToken = user.RefreshToken,
+            };
+        }
+        public string GenerateJwtToken(User user)
         {
             var tokenDescriptor = new SecurityTokenDescriptor
             {
 
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(JwtRegisteredClaimNames.Email, loginUser.Email),
-                    new Claim(ClaimTypes.Role, Enums.GetRoleName(loginUser.Role))
+                    new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                    new Claim(ClaimTypes.Role, Enums.GetRoleName(user.Role))
                 }),
                 Expires = _expiryTimesStamp,
                 Issuer = _issuer,
@@ -55,73 +75,12 @@ namespace Services.AuthenServices
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var jwtToken = tokenHandler.WriteToken(token);
 
-            loginUser.RefreshToken = GenerateRefreshToken();
-            loginUser.TokenExpires = DateTime.Now.AddDays(7);
-
-            await _userRepository.Update(loginUser);
-
-            return new UserLoginResponseDTOs
-            {
-                Email = loginUser.Email,
-                AccessToken = jwtToken,
-                TokenExpires = (int)_expiryTimesStamp.Subtract(DateTime.Now).TotalSeconds,
-                RefreshToken = loginUser.RefreshToken,
-            };
+            return jwtToken;
         }
 
-        //public async Task<LoginResponseUserDTO> AuthenticateUserWithRefreshToken(string RequsetRefreshToken)
-        //{
-        //    var refreshToken = await MyLearnContext.INSTANCE.RefreshTokens.Include(rt => rt.User).FirstOrDefaultAsync(rt => rt.Token == RequsetRefreshToken);
-        //    if (refreshToken == null || refreshToken.ExpiresAt < DateTime.Now)
-        //    {
-        //        throw new ApplicationException("The refresh token has expired");
-        //    }
-
-        //    var issuer = _configuration["JwtConfig:Issuer"];
-        //    var audience = _configuration["JwtConfig:Audience"];
-        //    var key = _configuration["JwtConfig:Key"];
-        //    var expiry = _configuration.GetValue<int>("JwtConfig:ExpiryInMinutes");
-        //    var expiryTimesStamp = DateTime.Now.AddMinutes(expiry);
-
-        //    var tokenDescriptor = new SecurityTokenDescriptor
-        //    {
-
-        //        Subject = new ClaimsIdentity(new[]
-        //        {
-        //            new Claim(JwtRegisteredClaimNames.Name, refreshToken.User.UserName),
-        //            new Claim(ClaimTypes.Role, "Admin")
-        //        }),
-        //        Expires = expiryTimesStamp,
-        //        Issuer = issuer,
-        //        Audience = audience,
-        //        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
-        //        SecurityAlgorithms.HmacSha256Signature)
-        //    };
-
-        //    var tokenHandler = new JwtSecurityTokenHandler();
-        //    var token = tokenHandler.CreateToken(tokenDescriptor);
-        //    var jwtToken = tokenHandler.WriteToken(token);
-
-        //    refreshToken.Token = GenerateRefreshToken();
-        //    refreshToken.ExpiresAt = DateTime.Now.AddDays(7);
-        //    await MyLearnContext.INSTANCE.SaveChangesAsync();
-
-        //    return new LoginResponseUserDTO
-        //    {
-        //        Username = refreshToken.User.UserName,
-        //        AccessToken = jwtToken,
-        //        ExpiresIn = (int)expiryTimesStamp.Subtract(DateTime.Now).TotalSeconds,
-        //        RefreshToken = refreshToken.Token,
-        //    };
-        //}
         public string GenerateRefreshToken()
         {
             return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
-        }
-
-        public Task<UserLoginResponseDTOs> AuthenticateUserWithRefreshToken(string RequsetRefreshToken)
-        {
-            throw new NotImplementedException();
         }
     }
 }

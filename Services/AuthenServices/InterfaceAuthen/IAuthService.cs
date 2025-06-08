@@ -12,10 +12,12 @@ namespace Services.AuthenServices.InterfaceAuthen
 {
     public interface IAuthService 
     {
-        Task<ResponseDTO<UserLoginResponseDTOs>> LoginHandler(UserLoginRequestDTOs loginRequestDTOs);
+        Task<ResponseDTO<UserLoginResponseDTO>> LoginHandler(UserLoginRequestDTO loginRequestDTOs);
 
-        Task<ResponseDTO<string>> RegisterHandler(RegisterUserDTOs registerUserDTOs);
+        Task<ResponseDTO<string>> RegisterHandler(RegisterUserDTO registerUserDTOs);
 
-        Task<ResponseDTO<UserLoginResponseDTOs>> SignInGoogle(AuthenticateResult authenticateResult);
+        Task<ResponseDTO<UserLoginResponseDTO>> SignInGoogle(AuthenticateResult authenticateResult);
+
+        Task<ResponseDTO<UserLoginResponseDTO>> RefreshToken(string refreshToken);
     }
 }

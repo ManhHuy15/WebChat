@@ -7,7 +7,7 @@ namespace WebClient.Pages
     public class LoginModel : PageModel
     {
         [BindProperty]
-        public UserLoginRequestDTOs loginUser { get; set; }
+        public UserLoginRequestDTO loginUser { get; set; }
         public void OnGet()
         {
         }

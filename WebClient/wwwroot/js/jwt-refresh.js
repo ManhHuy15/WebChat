@@ -7,7 +7,7 @@
 $(function () {
     IsLogin();
     $(document).on("ajaxSend", function (event, jqxhr, settings) {
-        if (settings.url === '/api/auth/refresh-token') {
+        if (settings.url === 'http://localhost:5050/api/auth/refresh-token') {
             return;
         }
         var token = localStorage.getItem('access-token');
@@ -41,14 +41,18 @@ function isTokenExpired(token) {
 
 function refreshToken() {
     return $.ajax({
-        url: '/api/auth/refresh-token',
+        url: 'http://localhost:5050/api/auth/refresh-token',
         method: 'POST',
-        data: {
-            refreshToken: localStorage.getItem('refresh-token')
+        contentType: 'application/json',
+        data: JSON.stringify(localStorage.getItem('refresh-token')),
+        success: function (response) {
+            if (response.status == 200) {
+                localStorage.setItem('refresh-token', response.data.refreshToken);
+                localStorage.setItem('access-token', response.data.accessToken);
+                localStorage.setItem('email', JSON.stringify(response.data.email));
+            } else {
+                window.location.href = '/login';
+            }
         }
-    }).then(function (response) {
-        localStorage.setItem('refresh-token', response.data.refreshToken);
-        localStorage.setItem('access-token', response.data.accessToken);
-        localStorage.setItem('email', JSON.stringify(response.data.email));
     });
 }

@@ -31,14 +31,14 @@ namespace Services.AuthenServices
             _passwordHashingService = passwordHashingService;
         }
 
-        public async Task<ResponseDTO<UserLoginResponseDTOs>> LoginHandler(UserLoginRequestDTOs loginRequestDTOs)
+        public async Task<ResponseDTO<UserLoginResponseDTO>> LoginHandler(UserLoginRequestDTO loginRequestDTOs)
         {
             User user = await _userRepository.GetUser(u => u.Email == loginRequestDTOs.Email 
                                                     && u.Password == _passwordHashingService.HashPassword(loginRequestDTOs.Password)
                                                     && u.IsActive == true);
             if (user == null)
             {
-                return new ResponseDTO<UserLoginResponseDTOs>
+                return new ResponseDTO<UserLoginResponseDTO>
                 {
                     status = HttpStatusCode.BadRequest,
                     success = false,
@@ -46,8 +46,8 @@ namespace Services.AuthenServices
                 };
             }
 
-            var result = await _jwtService.AuthenticateUser(user);
-            return new ResponseDTO<UserLoginResponseDTOs>
+            var result = await _jwtService.AuthenticateUser(user,false);
+            return new ResponseDTO<UserLoginResponseDTO>
             {
                 status = HttpStatusCode.OK,
                 success = true,
@@ -56,7 +56,32 @@ namespace Services.AuthenServices
             };
         }
 
-        public async Task<ResponseDTO<string>> RegisterHandler(RegisterUserDTOs registerUserDTOs)
+        public async Task<ResponseDTO<UserLoginResponseDTO>> RefreshToken(string refreshToken)
+        {
+            var user = _userRepository.GetUser(u => u.RefreshToken == refreshToken).Result;
+
+            if(user == null || user.TokenExpires < DateTime.Now)
+            {
+                return new ResponseDTO<UserLoginResponseDTO>
+                {
+                    status = HttpStatusCode.BadRequest,
+                    success = false,
+                    message = "Token is expired."
+                };
+            }
+
+            var result = await _jwtService.AuthenticateUser(user,true);
+
+            return new ResponseDTO<UserLoginResponseDTO>
+            {
+                status = HttpStatusCode.OK,
+                success = true,
+                message = "Refresh token successfully.",
+                data = result
+            };
+        }
+
+        public async Task<ResponseDTO<string>> RegisterHandler(RegisterUserDTO registerUserDTOs)
         {
             User user = await _userRepository.GetUser(u => u.Email == registerUserDTOs.Email);
 
@@ -91,7 +116,8 @@ namespace Services.AuthenServices
             };
         }
 
-        public async Task<ResponseDTO<UserLoginResponseDTOs>> SignInGoogle(AuthenticateResult authenticateResult)
+
+        public async Task<ResponseDTO<UserLoginResponseDTO>> SignInGoogle(AuthenticateResult authenticateResult)
         {
        
             var claims = authenticateResult.Principal.Identities.FirstOrDefault()?.Claims;
@@ -125,8 +151,8 @@ namespace Services.AuthenServices
             }
 
 
-            var result = await _jwtService.AuthenticateUser(user);
-            return new ResponseDTO<UserLoginResponseDTOs>
+            var result = await _jwtService.AuthenticateUser(user,false);
+            return new ResponseDTO<UserLoginResponseDTO>
             {
                 status = HttpStatusCode.OK,
                 success = true,
