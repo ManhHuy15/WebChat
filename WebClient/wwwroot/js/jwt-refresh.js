@@ -51,6 +51,10 @@ function refreshToken() {
                 localStorage.setItem('access-token', response.data.accessToken);
                 localStorage.setItem('email', JSON.stringify(response.data.email));
             } else {
+                localStorage.removeItem('refresh-token');
+                localStorage.removeItem('access-token');
+                localStorage.removeItem('email');
+                localStorage.removeItem('expires');
                 window.location.href = '/login';
             }
         }

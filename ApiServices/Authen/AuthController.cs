@@ -96,12 +96,12 @@ namespace ApiServices.Authen
                 var html = $@"
                         <script>
                             window.opener.postMessage({{ 
-                                                        Status: '{result.status.GetHashCode()}',
-                                                        Email: '{result.data.Email}',
-                                                        AccessToken: '{result.data.AccessToken}',
-                                                        RefreshToken: '{result.data.RefreshToken}',
-                                                        TokenExpires: '{result.data.TokenExpires}'}},
-                                                        'http://localhost:5108');
+                                Status: '{result.status.GetHashCode()}',
+                                Email: '{result.data.Email}',
+                                AccessToken: '{result.data.AccessToken}',
+                                RefreshToken: '{result.data.RefreshToken}',
+                                TokenExpires: '{result.data.TokenExpires}'}},
+                                'http://localhost:5108');
                             window.close();
                         </script>
                     ";

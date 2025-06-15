@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Repositories.MessageRepository;
 using Repositories.UserRepository;
 using Services.AuthenServices;
 using Services.AuthenServices.InterfaceAuthen;
+using Services.MessageServices;
 using Services.UserServices;
 using System.Text;
 
@@ -69,15 +71,18 @@ namespace ApiServices
 
             // Add data access object to the container.
             builder.Services.AddScoped<UserDAO>();
+            builder.Services.AddScoped<MessageDAO>();
 
             // Add repositories to the container.
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+
+            // Add services to the container.
             builder.Services.AddScoped<IJWTService, JWTService>();
             builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-
-            // Add services to the container.
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IMessageService, MessageService>();
 
 
             builder.Services.AddControllers();
@@ -116,17 +121,20 @@ namespace ApiServices
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy(name: "AllowLocalhost5108",
+                options.AddPolicy(name: "AllowSpecificOrigins",
                     policy =>
                     {
-                        policy.WithOrigins("http://localhost:5108")
+                        policy.WithOrigins(
+                                    "https://localhost:50501", 
+                                    "http://localhost:5108"
+                                )
                               .AllowAnyHeader()
                               .AllowAnyMethod()
                               .AllowCredentials();
                     });
             });
             var app = builder.Build();
-            app.UseCors("AllowLocalhost5108");
+            app.UseCors("AllowSpecificOrigins");
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {

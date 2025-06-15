@@ -30,5 +30,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <script>
+		$(document).ready(function () {
+            var token = localStorage.getItem("access-token");
+			if (token != null) {
+				window.location.href = "/";
+			}
+		});
+    </script>
 </body>
 </html>

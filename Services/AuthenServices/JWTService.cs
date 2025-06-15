@@ -40,8 +40,8 @@ namespace Services.AuthenServices
 
             if (!isRefreshToken) {
                 user.RefreshToken = GenerateRefreshToken();
-                //user.TokenExpires = DateTime.Now.AddDays(7);
-               user.TokenExpires = _expiryTimesStamp;
+                user.TokenExpires = DateTime.Now.AddDays(7);
+               //user.TokenExpires = _expiryTimesStamp;
             }
 
             await _userRepository.Update(user);
@@ -61,7 +61,8 @@ namespace Services.AuthenServices
 
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                    new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Role, Enums.GetRoleName(user.Role))
                 }),
                 Expires = _expiryTimesStamp,
