@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,18 +17,44 @@ namespace DataAccess
             _context = context;
         }
 
-        public List<User> GetUsers()
+        public async Task<User> GetUserByCondition(Expression<Func<User, bool>> condition)
         {
-            var users = new List<User>();
+            var user = new User();
             try
             {
-                users = _context.Users.ToList();
+                user = await _context.Users.Where(condition).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
-            return users;
+            return user;
+        }
+
+        public async Task Add(User user)
+        {
+            try
+            {
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task Update(User user)
+        {
+            try
+            {
+                _context.Entry<User>(user).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
     }
 }

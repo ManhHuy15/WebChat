@@ -1,0 +1,150 @@
+﻿@page
+@model WebClient.Pages.RegisterModel
+@{
+}
+
+@{
+   Layout = "_EmptyLayout";
+}
+
+<div class="px-4 py-5 px-md-5 text-center text-lg-start min-vh-100" style="background-color: hsl(0, 0%, 96%)">
+    <div class="container">
+        <div class="row gx-lg-5 align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <h1 class="my-5 display-3 fw-bold ls-tight">
+                    The best offer <br />
+                    <span class="text-primary">for your business</span>
+                </h1>
+                <p style="color: hsl(217, 10%, 50.8%)">
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                    Eveniet, itaque accusantium odio, soluta, corrupti aliquam
+                    quibusdam tempora at cupiditate quis eum maiores libero
+                    veritatis? Dicta facilis sint aliquid ipsum atque?
+                </p>
+            </div>
+
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <div class="card">
+                    <div class="card-body pt-5 pb-4 px-md-5">
+                        <h2>Create new account</h2>
+                        <form method="post" id="registerForm">
+                            <div data-mdb-input-init class="form-outline mb-3">
+                                <label class="form-label" for="fullName"></label>
+                                <input type="text" id="fullName" asp-for="RegisterUser.FullName" class="form-control" placeholder="Full name" />
+                                <span asp-validation-for="RegisterUser.FullName" class="text-danger"></span>
+                            </div>
+                            <div class="row mb-4">
+                                <div data-mdb-input-init class="form-outline col-md-6  me-4">
+                                    <label class="form-label" for="birth">Date of birth</label>
+                                    <input type="date" id="birth" asp-for="RegisterUser.Birth"  class="form-control" placeholder="Date of birth" />
+									<span asp-validation-for="RegisterUser.Birth" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 row">
+                                    <span class="form-label" >Gender</span>
+                                    <div class="col-md-5 ">
+                                        <div class="form-check form-check-inline ">
+                                            <input class="form-check-input" asp-for="RegisterUser.Gender" type="radio" name="gender" value="true" id="male" checked />
+                                            <label class="form-check-label" for="male">Male</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5 ">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" asp-for="RegisterUser.Gender" type="radio" name="gender" value="false" id="female" />
+                                            <label class="form-check-label" for="female">Female</label>
+                                        </div>
+                                    </div>
+                                    <span asp-validation-for="RegisterUser.Gender" class="text-danger"></span>
+                                </div>
+                            </div>
+                                
+                            <div data-mdb-input-init class="form-outline mb-4">
+                                <input type="email" id="email" asp-for="RegisterUser.Email" class="form-control" placeholder="Email" />
+								<span asp-validation-for="RegisterUser.Email" id="email_error" class="text-danger"></span>
+                            </div>
+
+                            <div data-mdb-input-init class="form-outline mb-4">
+                                <input type="password" id="password" asp-for="RegisterUser.Password" class="form-control" placeholder="Password" />
+								<span asp-validation-for="RegisterUser.Password" class="text-danger"></span>
+                            </div>
+
+                            <div data-mdb-input-init class="form-outline mb-4">
+                                <input type="password" id="confirm_password" class="form-control" placeholder="Confirm Password" />
+								<span id="confirm_password_error" class="text-danger"></span>
+                            </div>
+
+                            <button type="submit" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block w-100 fs-4 fw-bolder">
+                                Sign up
+                            </button>
+
+                            <div class="text-center mt-5">
+                                <span> <a href="/login">All ready have an account ?</a></span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#registerForm').on('submit', function (e) {
+                e.preventDefault();
+                const form = $(this);
+                if (typeof form.validate === "function") {
+                    form.validate();
+                    if (!form.valid() || !IsMatchPassword()) {
+                        return;
+                    }
+                }
+                const formData = {
+					FullName: $('#fullName').val(),
+					Birth: $('#birth').val(),
+					Gender: $('input[name="gender"]:checked').val() === 'true',
+					Email: $('#email').val(),
+					Password: $('#password').val()
+                }
+                console.log(formData);
+				$.ajax({
+                    url: 'http://localhost:5050/api/auth/register',
+					type: 'POST',
+                    contentType: 'application/json',
+					data: JSON.stringify(formData),
+					success: function (result) {
+                         if(result.status == 200){
+                            window.location.href = '/login';
+                        }else{
+                            $('#email_error').text(result.message);
+                        }
+					},
+					error: function (error) {
+						console.error('Registration failed:', error);
+					}
+				});
+
+            });
+
+			$('#confirm_password').on('input', function () {
+                IsMatchPassword();
+			});
+
+            function IsMatchPassword(){
+                const password = $('#password').val();
+                const confirmPassword = $('#confirm_password').val();
+                if (password !== confirmPassword) {
+                    $('#confirm_password_error').text('Passwords do not match');
+                    return false;
+                } else {
+                    $('#confirm_password_error').text('');
+					return true;
+                }
+            }
+
+           
+        });
+    </script>
+}
+

@@ -4,6 +4,7 @@ using BusinessObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BusinessObjects.Migrations
 {
     [DbContext(typeof(WebChatContext))]
-    partial class WebChatContextModelSnapshot : ModelSnapshot
+    [Migration("20250603071544_fourthDB_UserInfor")]
+    partial class fourthDB_UserInfor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -173,7 +176,7 @@ namespace BusinessObjects.Migrations
                     b.Property<string>("Avatar")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateOnly?>("Birth")
+                    b.Property<DateOnly>("Birth")
                         .HasColumnType("date");
 
                     b.Property<string>("Email")
@@ -186,12 +189,8 @@ namespace BusinessObjects.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<bool?>("Gender")
+                    b.Property<bool>("Gender")
                         .HasColumnType("bit");
-
-                    b.Property<string>("GoogleId")
-                        .HasMaxLength(25)
-                        .HasColumnType("nvarchar(25)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");

@@ -1,4 +1,14 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿$(function () {
+    IsLogin();
+});
 
-// Write your JavaScript code.
+function IsLogin() {
+    const token = localStorage.getItem('access-token');
+    if (!token) {
+        window.location.href = '/login';
+    } 
+
+    if (isTokenExpired(token)) {
+        refreshToken();
+    }
+}

@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace WebClient.Pages
 {
-    public class LoginModel : PageModel
+    public class RegisterModel : PageModel
     {
         [BindProperty]
-        public UserLoginRequestDTO loginUser { get; set; }
+        public RegisterUserDTO RegisterUser { get; set; }
         public void OnGet()
         {
         }

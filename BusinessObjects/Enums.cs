@@ -26,5 +26,18 @@ namespace BusinessObjects
             User,
             Admin,
         }
+
+        public static string GetRoleName(int role)
+        {
+            switch (role)
+            {
+                case (int) Role.User:
+                    return "User";
+                case (int) Role.Admin:
+                    return "Admin";
+                default:
+                    return "User";
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using BusinessObjects;
+using DTOs.AuthenDTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,6 @@ namespace Services.UserServices
 {
     public interface IUserService
     {
-        List<User> GetAllUsers();
+       
     }
 }

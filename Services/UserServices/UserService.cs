@@ -1,4 +1,5 @@
 ﻿using BusinessObjects;
+using DTOs.AuthenDTOs;
 using Repositories.UserRepository;
 using System;
 using System.Collections.Generic;
@@ -16,9 +17,7 @@ namespace Services.UserServices
         {
             _userRepository = userRepository;
         }
-        public List<User> GetAllUsers()
-        {
-            return _userRepository.GetAllUsers();
-        }
+
+      
     }
 }

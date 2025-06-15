@@ -109,6 +109,12 @@ namespace BusinessObjects
                 entity.Property(g => g.CreatedAt)
                       .HasDefaultValueSql("GETDATE()");
             });
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.Property(u => u.IsOnline)
+                      .HasDefaultValue(false);
+            });
         }
 
     }
