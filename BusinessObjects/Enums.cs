@@ -27,6 +27,12 @@ namespace BusinessObjects
             Admin,
         }
 
+        public enum ChatItemType
+        {
+            User,
+            Group
+        }
+
         public static string GetRoleName(int role)
         {
             switch (role)

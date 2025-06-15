@@ -3,8 +3,169 @@
 @{
     ViewData["Title"] = "Home page";
 }
+<style>
+    .chat-sidebar {
+        width: 22em;
+        border-right: 1px solid #ddd;
+        overflow-y: auto;
+    }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    .chat-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: #f2f3f5;
+    }
+
+    .chat-header {
+        border-bottom: 1px solid #ddd;
+        padding: 1rem;
+        background-color: white;
+    }
+
+    .chat-messages {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        background-color: #f2f3f5;
+    }
+
+    .chat-footer {
+        border-top: 1px solid #ccc;
+        padding: 0.75rem;
+        background-color: white;
+    }
+
+    .chat-item:hover {
+        background-color: #f1f1f1;
+    }
+
+    .chat-item.active {
+        background-color: #e7f1ff;
+        color: #212529;
+        border-width: 0 1px 0 0;
+        border-top-width: 0px !important;
+    }
+
+    .message-bubble {
+        max-width: 70%;
+        background-color: #e0f0ff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        align-self: flex-end;
+    }
+
+    .message-time {
+        font-size: 0.8rem;
+        color: gray;
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+</style>
+
+<div class="d-flex h-100">
+    <!-- Sidebar trái -->
+    <div class="chat-sidebar bg-white d-flex flex-column">
+        <!-- Tìm kiếm -->
+        <div class="p-3 d-flex align-items-center justify-content-between">
+            <div class="input-group rounded w-75">
+                <input type="search" class="form-control rounded  " placeholder="Search" aria-label="Search" aria-describedby="search-addon" />
+            </div>
+            <div class="p-2 ">
+                <i class="fas fa-users fs-5"></i>
+            </div>
+        </div>
+
+        <!-- Danh sách cuộc trò chuyện -->
+        <div class="list-group list-group-flush flex-grow-1" id="chatList">
+
+            <a href="#" class="list-group-item list-group-item-action d-flex gap-2 align-items-center chat-item active">
+                <img src="https://scontent.fhan15-1.fna.fbcdn.net/v/t39.30808-6/482019444_122183994404333369_5508670626021919815_n.png?stp=dst-jpg_tt6&_nc_cat=109&ccb=1-7&_nc_sid=2285d6&_nc_ohc=6Wm8HoVrr7YQ7kNvwHAcI2-&_nc_oc=AdndOHVw3uGmQPQe8GJR0VlBYXB-B8Oz49gzWSTKb3zb61Bwfnc_SYEQSf3NtGfGGwk&_nc_zt=23&_nc_ht=scontent.fhan15-1.fna&_nc_gid=_7k3Dmuxuu1TZTW0kieKqA&oh=00_AfNPJihpfAgRqDEA3_3Jiem3JZtvAvVgBiPrCg1OCXWSVQ&oe=6854629C" class="avatar" alt="">
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between">
+                        <strong>Cloud của tôi</strong>
+                        <small class="text-muted">31/05</small>
+                    </div>
+                    <div class="text-muted text-truncate">Nhanba</div>
+                </div>
+            </a>
+
+            <!-- Mẫu cuộc trò chuyện -->
+            <a href="#" class="list-group-item list-group-item-action d-flex gap-2 align-items-center chat-item">
+                <img src="https://scontent.fhan15-1.fna.fbcdn.net/v/t39.30808-6/482019444_122183994404333369_5508670626021919815_n.png?stp=dst-jpg_tt6&_nc_cat=109&ccb=1-7&_nc_sid=2285d6&_nc_ohc=6Wm8HoVrr7YQ7kNvwHAcI2-&_nc_oc=AdndOHVw3uGmQPQe8GJR0VlBYXB-B8Oz49gzWSTKb3zb61Bwfnc_SYEQSf3NtGfGGwk&_nc_zt=23&_nc_ht=scontent.fhan15-1.fna&_nc_gid=_7k3Dmuxuu1TZTW0kieKqA&oh=00_AfNPJihpfAgRqDEA3_3Jiem3JZtvAvVgBiPrCg1OCXWSVQ&oe=6854629C" class="avatar" alt="">
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between">
+                        <strong>Phòng trống</strong>
+                        <small class="text-muted">3 giờ</small>
+                    </div>
+                    <div class="text-muted text-truncate">Hình ảnh</div>
+                </div>
+            </a>
+            <a href="#" class="list-group-item list-group-item-action d-flex gap-2 align-items-center chat-item">
+                <img src="https://scontent.fhan15-1.fna.fbcdn.net/v/t39.30808-6/482019444_122183994404333369_5508670626021919815_n.png?stp=dst-jpg_tt6&_nc_cat=109&ccb=1-7&_nc_sid=2285d6&_nc_ohc=6Wm8HoVrr7YQ7kNvwHAcI2-&_nc_oc=AdndOHVw3uGmQPQe8GJR0VlBYXB-B8Oz49gzWSTKb3zb61Bwfnc_SYEQSf3NtGfGGwk&_nc_zt=23&_nc_ht=scontent.fhan15-1.fna&_nc_gid=_7k3Dmuxuu1TZTW0kieKqA&oh=00_AfNPJihpfAgRqDEA3_3Jiem3JZtvAvVgBiPrCg1OCXWSVQ&oe=6854629C" class="avatar" alt="">
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between">
+                        <strong>Phòng trống</strong>
+                        <small class="text-muted">3 giờ</small>
+                    </div>
+                    <div class="text-muted text-truncate">Hình ảnh</div>
+                </div>
+            </a>
+
+            <!-- Thêm các mục khác nếu cần -->
+        </div>
+    </div>
+
+    <!-- Nội dung chat -->
+    <div id="chat-content" class="chat-content d-flex flex-column">
+        <!-- Header -->
+        <div class="chat-header d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="mb-0">Cloud của tôi</h6>
+                <small class="text-muted">Lưu và đồng bộ dữ liệu giữa các thiết bị</small>
+            </div>
+        </div>
+
+        <!-- Nội dung tin nhắn -->
+        <div class="chat-messages d-flex flex-column">
+            <div class="text-center text-muted my-2"><small>T7 31/05/2025</small></div>
+            <div class="d-flex flex-column align-items-end">
+                <div class="message-bubble">Ảnh</div>
+                <div class="message-bubble">À</div>
+                <div class="message-bubble">Bsbsa</div>
+                <div class="message-bubble">Nhanba</div>
+                <small class="message-time">15:14</small>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="chat-footer">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-image fs-5"></i>
+                <i class="bi bi-paperclip fs-5"></i>
+                <input type="text" class="form-control" placeholder="Nhập , tin nhắn tới Cloud của tôi">
+                <i class="bi bi-emoji-smile fs-5"></i>
+                <i class="bi bi-hand-thumbs-up-fill text-primary fs-5"></i>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('.chat-item').on('click', function (e) {
+                e.preventDefault();
+                $('.chat-item').removeClass('active');
+                $(this).addClass('active');
+            });
+        });
+    </script>
+}
+
