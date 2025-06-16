@@ -19,7 +19,7 @@ namespace Repositories.MessageRepository
         {
             _messageDAO = messageDAO;
         }
-        public async Task<List<Message>> GetAllMessages(int userId)
+        public async Task<List<Message>> GetChatList(int userId)
         {
             var messages = await _messageDAO.GetListMessageByCondition(x => x.SenderId == userId || x.ReceiverId == userId)
                                             .Select(m => new
@@ -31,6 +31,13 @@ namespace Repositories.MessageRepository
                                             .Select(g => g.OrderByDescending(x => x.Message.SentAt).First().Message)
                                             .ToListAsync();
             return messages;
+        }
+        public async Task<List<Message>> GetAllMessagesUser(int userId, int receiverId)
+        {
+            return await _messageDAO.GetListMessageByCondition(x => 
+                    (x.SenderId == userId && x.ReceiverId == receiverId) 
+                    || (x.SenderId == receiverId && x.ReceiverId == userId)
+            ).ToListAsync();
         }
     }
 }

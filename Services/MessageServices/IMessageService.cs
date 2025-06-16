@@ -1,4 +1,5 @@
 ﻿using DTOs;
+using DTOs.MessageDTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,9 @@ namespace Services.MessageServices
 {
     public interface IMessageService
     {
-        Task<List<ChatItemDTO>> GetListChat(int userId);
+        Task<ResponseDTO<List<ChatItemDTO>>> GetListChat(int userId);
+
+        Task<ResponseDTO<List<MessageUserDTO>>> GetAllMessagesUser(int userId, int receiverId);
+
     }
 }

@@ -1,4 +1,9 @@
-﻿<!DOCTYPE html>
+﻿@inject IConfiguration Configuration
+@{
+    var config = Context.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
+    var apiBaseUrl = config["ApiSettings:BaseUrl"];
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -22,26 +27,29 @@
         .sidebar {
             width: 4.5rem;
             height: 100vh;
-            background-color: #0055e0;
+            margin-right: 0.5rem
         }
 
-            .sidebar .nav-link {
-                color: white;
-                padding: 1rem 0;
-            }
+        .bg-primary-dark{
+            background-color: #2b2b2b;
+        }
 
-                .sidebar .nav-link:hover {
-                    background-color: rgba(255, 255, 255, 0.1);
-                }
+        .sidebar .nav-link {
+            color: white;
+            padding: 1rem 0;
+        }
 
-            .sidebar .profile-img {
-                width: 50px;
-                height: 50px;
-                border-radius: 50%;
-                object-fit: cover;
-                border: 2px solid white;
-            }
+        .sidebar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
 
+        .sidebar .profile-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
 
 
         .badge-notify {
@@ -51,7 +59,7 @@
         }
     </style>
 </head>
-<body class="d-flex mb-0 mh-100">
+<body class="d-flex mb-0 mh-100 bg-primary-dark">
     <div class="d-flex flex-column align-items-center sidebar">
         <div class="mt-3">
             <img src="https://scontent.fhan5-10.fna.fbcdn.net/v/t39.30808-1/468506906_1256036072118428_4942223550658486191_n.jpg?stp=dst-jpg_s160x160_tt6&_nc_cat=111&ccb=1-7&_nc_sid=e99d92&_nc_ohc=eMefdR1rroUQ7kNvwHnuMgs&_nc_oc=AdkJEf5LeGt_8p-QBZOkjgTZmnOxFI1QAOB566ZbdNUYGGq1LbnxWXaujIj5MKZpn7w&_nc_zt=24&_nc_ht=scontent.fhan5-10.fna&_nc_gid=u712gdwD57PuCgqzIqQxNA&oh=00_AfO2tthDyia8YrovATi6n4jZV4CRCHru61rFBZ866Bzihg&oe=68543E85" alt="Avatar" class="profile-img">
@@ -98,6 +106,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        const API_URL = "@apiBaseUrl";
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

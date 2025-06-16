@@ -9,6 +9,8 @@ namespace Repositories.MessageRepository
 {
     public interface IMessageRepository
     {
-        Task<List<Message>> GetAllMessages(int userId);
+        Task<List<Message>> GetChatList(int userId);
+
+        Task<List<Message>> GetAllMessagesUser(int userId, int receiverId);
     }
 }

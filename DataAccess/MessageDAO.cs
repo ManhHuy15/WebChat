@@ -22,10 +22,10 @@ namespace DataAccess
             try
             {
                 return _context.Messages.Include(message => message.Sender)
-                                                    .Include(message => message.Receiver)
-                                                    .Include(message => message.Group)
-                                                    .Include(message => message.MessageStatuses)
-                                                    .Where(condition).AsQueryable();
+                                        .Include(message => message.Receiver)
+                                        .Include(message => message.Group)
+                                        .Include(message => message.MessageStatuses)
+                                        .Where(condition).AsQueryable();
             }
             catch (Exception ex)
             {

@@ -27,8 +27,28 @@ namespace ApiServices.Controllers
             }
             try
             {
-                return Ok( await _messageService.GetListChat(int.Parse(userId)));
+                var result = await _messageService.GetListChat(int.Parse(userId));
+                return Ok(result);
             }catch( Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpGet("get-messages/{receiverId}")]
+        public async Task<IActionResult> GetMessages([FromRoute] int receiverId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+            try
+            {
+                var result = await _messageService.GetAllMessagesUser(int.Parse(userId), receiverId);
+                return Ok(result);
+            }
+            catch (Exception ex)
             {
                 return BadRequest(ex);
             }
