@@ -1,9 +1,11 @@
 
+using ApiServices.Chat;
 using BusinessObjects;
 using DataAccess;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -30,7 +32,7 @@ namespace ApiServices
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 //options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddCookie()
             .AddGoogle(GoogleDefaults.AuthenticationScheme, options => {
@@ -46,7 +48,7 @@ namespace ApiServices
                     ValidAudience = builder.Configuration["JwtConfig:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtConfig:Key"])),
                     ValidateIssuer = true,
-                    ValidateAudience = true,
+                    ValidateAudience = false,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     ClockSkew = TimeSpan.Zero
@@ -59,6 +61,17 @@ namespace ApiServices
                         if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
                         {
                             context.Response.Headers.Add("Token-Expired", "true");
+                        }
+                        return Task.CompletedTask;
+                    },
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
                         }
                         return Task.CompletedTask;
                     }
@@ -83,7 +96,7 @@ namespace ApiServices
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IMessageService, MessageService>();
-
+            builder.Services.AddSignalR();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -130,7 +143,8 @@ namespace ApiServices
                                 )
                               .AllowAnyHeader()
                               .AllowAnyMethod()
-                              .AllowCredentials();
+                              .AllowCredentials()
+                              .SetIsOriginAllowed(origin => true);
                     });
             });
             var app = builder.Build();
@@ -147,6 +161,7 @@ namespace ApiServices
 
             app.MapControllers();
 
+            app.MapHub<ChatHub>("/hubs/chat");
             app.Run();
         }
     }

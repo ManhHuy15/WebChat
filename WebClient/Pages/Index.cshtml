@@ -114,9 +114,9 @@
                 <div>
                     <h6 class="mb-0" id="chat-name">Cloud của tôi</h6>
                     <small class="text-muted">Lưu và đồng bộ dữ liệu giữa các thiết bị</small>
+                    <input type="hidden" id="chat-id" />
                 </div>
             </div>
-           
         </div>
 
         <div id="chat-messages" class="chat-messages d-flex flex-column">
@@ -136,7 +136,7 @@
                 <i class="bi bi-paperclip fs-5"></i>
                 <input type="text" class="form-control" placeholder="Nhập , tin nhắn tới Cloud của tôi">
                 <i class="bi bi-emoji-smile fs-5"></i>
-                <i class="bi bi-hand-thumbs-up-fill text-primary fs-5"></i>
+                <i class="bi bi-hand-thumbs-up-fill text-primary fs-5" id="btn-send"></i>
             </div>
         </div>
     </div>
@@ -150,8 +150,28 @@
             $('.chat-item').removeClass('active');
             $(this).addClass('active');
         });
-        window.openChat = function(id, type ){
+
+
+        $('#btn-send').on('click', async function (e) {
+            e.preventDefault();
+            const reciverId = $('#chat-id').val();
+            if (!reciverId) return;
+            try {
+                await connection.invoke('SendMessage', reciverId);
+            } catch (err) {
+                console.error('SignalR SendMessageToUser error:', err);
+            }
+        });
+
+        window.openChat = function(id, name, avatar ,type ){
             if(type == 0){
+                var chatName = $('#chat-name');
+                var chatAvatar = $('#chat-avatar');
+                var userId = $('#chat-id');
+
+                chatAvatar.attr('src', avatar);
+                chatName.text(name);
+                userId.val(id);
                 fetchMessageUser(id);
             }else if( type == 1){
 
@@ -172,7 +192,7 @@
                             console.log(result.data);
                             data.forEach(function (item, index) {
                                 var chatItem = $(`
-                                    <a href="#" class="list-group-item list-group-item-action text-white d-flex gap-2 align-items-center chat-item ${index === 0 ? 'active' : ''}" onclick="openChat(${item.id}, ${item.type})">
+                                        <a href="#" class="list-group-item list-group-item-action text-white d-flex gap-2 align-items-center chat-item ${index === 0 ? 'active' : ''}" onclick="openChat(${item.id},'${item.name}', ${item.avatar},${item.type})">
                                     <img src="https://scontent.fhan15-1.fna.fbcdn.net/v/t39.30808-6/482019444_122183994404333369_5508670626021919815_n.png?stp=dst-jpg_tt6&_nc_cat=109&ccb=1-7&_nc_sid=2285d6&_nc_ohc=6Wm8HoVrr7YQ7kNvwHAcI2-&_nc_oc=AdndOHVw3uGmQPQe8GJR0VlBYXB-B8Oz49gzWSTKb3zb61Bwfnc_SYEQSf3NtGfGGwk&_nc_zt=23&_nc_ht=scontent.fhan15-1.fna&_nc_gid=_7k3Dmuxuu1TZTW0kieKqA&oh=00_AfNPJihpfAgRqDEA3_3Jiem3JZtvAvVgBiPrCg1OCXWSVQ&oe=6854629C" class="avatar" alt="">
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between">
@@ -208,11 +228,7 @@
 					if(result.success ){
                         var data = result.data;
                         var chatList = $('#chat-messages');
-                        var chatName = $('#chat-name');
-                        var chatAvatar = $('#chat-avatar');
-
-						chatAvatar.attr('src', result.data[0].receiver.avatar);
-                        chatName.text(result.data[0].receiver.fullName);
+                       
 						chatList.empty();
 						data.forEach(function (item, index) {
 							var chatItem = $(`
