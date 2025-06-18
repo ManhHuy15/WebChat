@@ -1,7 +1,9 @@
-﻿using DTOs.MessageDTOs;
+﻿using CloudinaryDotNet.Actions;
+using DTOs.MessageDTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Services.ClouldinaryServices;
 using Services.MessageServices;
 using System.Security.Claims;
 
@@ -12,10 +14,12 @@ namespace ApiServices.Controllers
     public class MessageController : ControllerBase
     {
         private readonly IMessageService _messageService;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public MessageController(IMessageService messageService)
+        public MessageController(IMessageService messageService, ICloudinaryService cloudinaryService)
         {
             _messageService = messageService;
+            _cloudinaryService = cloudinaryService;
         }
 
         [HttpGet("list-chat")]
@@ -61,6 +65,12 @@ namespace ApiServices.Controllers
         {
             try
             {
+                foreach (var file in message.files)
+                {
+                    var result = await _cloudinaryService.UpLoadFileAsync(file);
+                    Console.WriteLine(result);
+                }
+
                 return Ok();
             }
             catch (Exception ex)
