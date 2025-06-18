@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using DTOs.MessageDTOs;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Services.MessageServices;
 using System.Security.Claims;
@@ -47,6 +49,19 @@ namespace ApiServices.Controllers
             {
                 var result = await _messageService.GetAllMessagesUser(int.Parse(userId), receiverId);
                 return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpPost("send-message/{receiverId}")]
+        public async Task<IActionResult> SendMessage([FromRoute] int receiverId,[FromForm] SendMessageDTO message)
+        {
+            try
+            {
+                return Ok();
             }
             catch (Exception ex)
             {
