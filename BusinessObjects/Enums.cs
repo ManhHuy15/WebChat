@@ -45,5 +45,22 @@ namespace BusinessObjects
                     return "User";
             }
         }
+
+        public static int GetResourceTypeId(string resourceName)
+        {
+            switch (resourceName)
+            {
+                case "image":
+                    return (int)MessageType.Image;
+                case "video":
+                    return (int)MessageType.Video;
+                case "audio":
+                    return (int)MessageType.Audio;
+                case "raw":
+                    return (int)MessageType.File;
+                default:
+                    return (int)MessageType.Text;
+            }
+        }
     }
 }

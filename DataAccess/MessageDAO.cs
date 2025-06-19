@@ -33,6 +33,18 @@ namespace DataAccess
             }
         }
 
+        public async Task AddRange(List<Message> message)
+        {
+            try
+            {
+                _context.Messages.AddRange(message);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }
 

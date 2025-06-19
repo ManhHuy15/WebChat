@@ -11,7 +11,7 @@ namespace DTOs.MessageDTOs
     {
         public int ReceiverId { get; set; }
         public string? Content { get; set; }
-        public List<IFormFile>? files { get; set; }
+        public List<IFormFile>? Files { get; set; }
 
     }
 }

@@ -39,5 +39,6 @@ namespace Repositories.MessageRepository
                     || (x.SenderId == receiverId && x.ReceiverId == userId)
             ).ToListAsync();
         }
+        public Task AddRange(List<Message> messages) => _messageDAO.AddRange(messages);
     }
 }

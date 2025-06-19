@@ -1,5 +1,7 @@
-﻿using CloudinaryDotNet;
+﻿using BusinessObjects;
+using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using DTOs.MessageDTOs;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -19,7 +21,7 @@ namespace Services.ClouldinaryServices
             _cloudinary=cloudinary;
         }
 
-        public async Task<string> UpLoadFileAsync(IFormFile file)
+        public async Task<CloudinryURLResponseDTO> UpLoadFileAsync(IFormFile file)
         {
             var result = new RawUploadResult();
             using (var stream = file.OpenReadStream())
@@ -59,7 +61,12 @@ namespace Services.ClouldinaryServices
                 result = await _cloudinary.UploadAsync(uploadParams);
             }
             if (result?.Url == null) return null;
-            return result.Url.ToString();
+
+            return new CloudinryURLResponseDTO
+            {
+                Url = result.Url.ToString(),
+                Type = Enums.GetResourceTypeId(result.ResourceType),
+            };
         }
     }
 }

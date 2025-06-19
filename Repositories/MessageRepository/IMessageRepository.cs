@@ -12,5 +12,6 @@ namespace Repositories.MessageRepository
         Task<List<Message>> GetChatList(int userId);
 
         Task<List<Message>> GetAllMessagesUser(int userId, int receiverId);
+        Task AddRange(List<Message> messages );
     }
 }

@@ -8,8 +8,9 @@
         width: 22em;
         overflow-y: auto;
         background-color: #1f1f1f;
-        margin: 1rem 1rem 1rem 0;
+        margin: 0 1rem 0 0;
 		border-radius: 0.5rem;
+        height: 95vh;
     }
 
     .chat-item{
@@ -34,11 +35,13 @@
         display: flex;
         flex-direction: column;
         background-color: #1f1f1f;
-        margin: 1rem 1rem 1rem 0;
-        border-radius: 0.5rem
+        margin: 0 1rem 0 0;
+        border-radius: 0.5rem;
+        height: 95vh;
     }
 
     .chat-header {
+        flex: 0 0 auto;
         border-bottom: 1px solid black;
         padding: 1rem;
         background-color: #1f1f1f;
@@ -46,14 +49,35 @@
     }
 
     .chat-messages {
+        flex: 1 1 auto;
         flex-grow: 1;
         overflow-y: auto;
+        overflow-x: hidden;
         padding: 1rem;
-        background-color: #252728;
+        background-color: #1f1f1f;
     }
 
+    #chat-messages::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    #chat-messages::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    #chat-messages::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
+
+
     .chat-footer {
-        border-top: 1px solid black;
+        flex: 0 0 auto;
         padding: 0.75rem;
         background-color: #1f1f1f;
         border-radius: 0 0 0.5rem 0.5rem;
@@ -78,6 +102,23 @@
         color : white;
 	}
 
+    .my-file-bubble {
+        max-width: 70%;
+        background-color: white;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        align-self: flex-end;
+    }
+
+    .other-file-bubble {
+        max-width: 70%;
+        background-color: white;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        align-self: flex-start;
+        max-height: 200px;
+    }
+
     .message-time {
         font-size: 0.8rem;
         color: gray;
@@ -89,6 +130,10 @@
         height: 40px;
         border-radius: 50%;
         object-fit: cover;
+    }
+    .m-h-12{
+      max-height: 12rem;
+        width: 100%;
     }
 </style>
 <style>
@@ -136,7 +181,7 @@
     }
 </style>
 
-<div class="d-flex h-100">
+<div class="d-flex h-100 py-3">
     <div class="chat-sidebar d-flex flex-column">
         <div class="p-3 d-flex align-items-center justify-content-between">
             <div class="input-group rounded w-75">
@@ -203,13 +248,15 @@
             var chatList = $('#chat-messages');
             var message = $('#chat-input').val();
             if (!reciverId) return;
-            if (!message && selectedFiles.length == 0) return;
+            if (message == '' && selectedFiles.length == 0) return;
             try {
-                var chatItem = $(` <div class="d-flex flex-column text-black align-items-end">
-                                        <div class="my-mes-bubble">${message}</div>
-                                    </div>
-                                `);
-
+                if(message != '' ){
+                    var chatItem = $(` <div class="d-flex flex-column text-black align-items-end">
+                                    <div class="my-mes-bubble">${message}</div>
+                                </div>
+                            `);
+                }
+               
                 chatList.append(chatItem);
 
                 var formData = new FormData();
@@ -217,11 +264,22 @@
                 formData.append('content', message);
                 selectedFiles.forEach((data) => {
                     formData.append('files', data.file);
-                });
-               
-                sendMessage(reciverId,formData);
-                await connection.invoke('SendMessage', reciverId);
+                    console.log(data.file);
+                    var chatFileItem = $(`
+                        <div class="d-flex flex-column text-black align-items-end  position-relative">
+                             ${renderPreviewFileBubble(data.file,data.preview,reciverId )}
+                            <div class="spinner-border text-primary spinner-border-sm position-absolute" style="right: 5px;bottom: 10px;" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
 
+                    `);
+                            chatList.append(chatFileItem);
+                });
+
+                //sendMessage(reciverId,formData);
+                console.log("Gửi message thanh cong");
+                
                 $('#chat-input').val('');
                 selectedFiles = [];
                 renderPreviews()
@@ -229,25 +287,7 @@
                 console.error('Send MessageTo User error:', err);
             }
         });
-
-            //  $('#btn-send').click(function () {
-            //     const message = $('#chat-input').val().trim();
-            //     const formData = new FormData();
-            //     formData.append('message', message);
-            //     selectedFiles.forEach((data) => {
-            //         formData.append('files', data.file);
-            //     });
-
-            //     // Gửi đi nếu cần
-            //     console.log("Gửi message:", message);
-            //     console.log("Gửi files:", selectedFiles.map(f => f.file.name));
-
-            //     // Reset sau khi gửi
-            //     $('#chat-input').val('');
-            //     selectedFiles = [];
-            //     renderPreviews();
-            // });
-
+ 
         window.openChat = function(id, name, avatar ,type ){
             if(type == 0){
                 var chatName = $('#chat-name');
@@ -275,6 +315,7 @@
                         var chatList = $('#chatList');
                         chatList.empty();
                             data.forEach(function (item, index) {
+                                const contentSlice = item.contentPreview.length > 20 ?item.contentPreview.slice(0, 18) + "..." : item.contentPreview;
                                 var chatItem = $(`
                                 <a href="#" class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center chat-item ${index === 0 ? 'active' : ''}" onclick="openChat(${item.id},'${item.name}', ${item.avatar},${item.type})">
                                     <img src="https://scontent.fhan15-1.fna.fbcdn.net/v/t39.30808-6/482019444_122183994404333369_5508670626021919815_n.png?stp=dst-jpg_tt6&_nc_cat=109&ccb=1-7&_nc_sid=2285d6&_nc_ohc=6Wm8HoVrr7YQ7kNvwHAcI2-&_nc_oc=AdndOHVw3uGmQPQe8GJR0VlBYXB-B8Oz49gzWSTKb3zb61Bwfnc_SYEQSf3NtGfGGwk&_nc_zt=23&_nc_ht=scontent.fhan15-1.fna&_nc_gid=_7k3Dmuxuu1TZTW0kieKqA&oh=00_AfNPJihpfAgRqDEA3_3Jiem3JZtvAvVgBiPrCg1OCXWSVQ&oe=6854629C" class="avatar" alt="">
@@ -283,7 +324,7 @@
                                             <strong>${item.name}</strong>
                                             <small class="text-muted">${timeToNow(item.time)}</small>
                                         </div>
-                                        <div class="text-muted text-truncate">${item.contentPreview}</div>
+                                            <div class="text-muted text-truncate">${contentSlice}</div>
                                     </div>
                                 </a>
                             `);
@@ -314,13 +355,13 @@
                         var chatName = $('#chat-name');
                         var chatAvatar = $('#chat-avatar');
                         var userId = $('#chat-id');
-
+                        console.log(data);
 						chatList.empty();
 						data.forEach(function (item, index) {
 							var chatItem = $(`
 								<div class="d-flex flex-column text-black align-items-end">
-                                    ${item.receiver.userId == reciverId ? `<div class="align-self-start text-white"><small>${item.receiver.fullName}</small></div>` : ''}
-                                    <div class="${item.receiver.userId == reciverId ? 'other-mes-bubble' : 'my-mes-bubble'}">${item.content}</div>
+                                    ${item.receiver.userId != reciverId ? `<div class="align-self-start text-white"><small>${item.sender.fullName}</small></div>` : ''}
+                                    ${renderMessageBubble(item,reciverId)}
                                     ${ index == data.length - 2 ? `<small class="message-time">${timeToNow(item.sentAt)}</small>` : '' }
 								</div>
 							`);
@@ -333,6 +374,7 @@
 							}
 						});
 
+                        scrollToBottom();
 					}else{
                     }
 				},
@@ -342,6 +384,87 @@
             });
         }
 
+        function renderMessageBubble(item,reciverId) {
+            switch (item.type) {
+                case 0:
+	                return `<div class=" text-break ${item.receiver.userId == reciverId ? 'my-mes-bubble' :'other-mes-bubble'}">
+                                ${item.content}
+                            </div>`;
+				case 1:
+                    return `<div class=" text-break ${item.receiver.userId == reciverId ? 'my-file-bubble' :'other-file-bubble'}">
+                                <img src="${item.content}"  class="m-h-12" alt="Image">
+                            </div>`;
+				case 2:
+                    return `<div class=" text-break ${item.receiver.userId == reciverId ? 'my-file-bubble' :'other-file-bubble'}">
+                        <video controls="controls" class="m-h-12" >
+                            <source src="${item.content}"   type="video/mp4" />
+                        </video>
+                    </div>`;
+                case 3:
+                    return `<div class=" text-break ${item.receiver.userId == reciverId ? 'my-file-bubble' :'other-file-bubble'}">
+						<audio controls="controls">
+							<source src="${item.content}"  type="audio/mpeg" />
+						</audio>
+					</div>`;
+                case 4:
+                    const lastSegment = item.content.split('/').pop();
+                    var filename = lastSegment.replace(/_(.*?)\./, '.')
+                    const dotIndex = filename.lastIndexOf('.');
+                    let name = filename.substring(0, dotIndex);
+                    let ext = filename.substring(dotIndex);
+                    if (name.length > 10) {
+                        name = name.substring(0, 10) + '...';
+                        filename = name + ext;
+                    }
+                    return `<div class="text-break ${item.receiver.userId == reciverId ? 'my-file-bubble' :'other-file-bubble'}" style="background-color: #2b2b2b">
+                        <a href="${lastSegment}" download target="_blank">
+                            <i class="bi bi-file-earmark-text-fill ms-2 fs-2 text-white"></i>
+                            <span class="text-white me-2 fw-bold "> ${filename} </span>
+                        </a>
+                    </div>`;
+            }
+        }
+        function renderPreviewFileBubble(item,itemPreview,reciverId) {
+            var type = item.type.split("/")[0];
+            console.log(type);
+            switch (type) {
+                case 0:
+                    return `<div class=" text-break my-mes-bubble">
+                                ${item.content}
+                            </div>`;
+                case "image":
+                    return `<div class=" text-break my-file-bubble">
+                                    <img src="${itemPreview}" class="m-h-12" alt="Image">
+                            </div>`;
+                case "video":
+                    return `<div class=" text-break my-file-bubble">
+                        <video  class="m-h-12" >
+                                  <source src="${itemPreview}"   type="video/mp4" />
+                        </video>
+                    </div>`;
+                case 3:
+                    return `<div class=" text-break my-file-bubble">
+                        <audio >
+                                  <source src="${itemPreview}"  type="audio/mpeg" />
+                        </audio>
+                    </div>`;
+                default:
+                    var filename = item.name;
+                    const dotIndex =  item.name.lastIndexOf('.');
+                    let name = item.name.substring(0, dotIndex);
+                    let ext = item.name.substring(dotIndex);
+                    if (name.length > 10) {
+                        name = name.substring(0, 10) + '...';
+                        filename = name + ext;
+                    }
+                    return `<div class="text-break my-file-bubble" style="background-color: #2b2b2b">
+                                <a href="#" target="_blank">
+                                    <i class="bi bi-file-earmark-text-fill ms-2 fs-2 text-white"></i>
+                                    <span class="text-white me-2 fw-bold "> ${filename} </span>
+                                </a>
+                        </div>`;
+            }
+        }
         function sendMessage(reciverId, message){
             $.ajax({
                 url: API_URL + `/api/Message/send-message/${reciverId}`,
@@ -349,8 +472,9 @@
                 processData: false,
                 contentType: false,
                 data: message,
-				success : function( result ){
+				success : async function( result ){
 					if(result.success){
+                        await connection.invoke('SendMessage', reciverId);
 						fetchMessageUser(reciverId);
 					}else{
 						console.error(result.message);
@@ -361,31 +485,35 @@
 				}
             });
         }
+
+        function scrollToBottom() {
+        }
+
     });
 
   
 
     function timeToNow(time) {
-        var inputDate = new Date(time);
-        var now = new Date();
-        var diffMs = now - inputDate;
-        var diffSec = Math.floor(diffMs / 1000);
-        var diffMin = Math.floor(diffSec / 60);
-        var diffHour = Math.floor(diffMin / 60);
-        var diffDay = Math.floor(diffHour / 24);
+    var inputDate = new Date(time);
+    var now = new Date();
+    var diffMs = now - inputDate;
+    var diffSec = Math.floor(diffMs / 1000);
+    var diffMin = Math.floor(diffSec / 60);
+    var diffHour = Math.floor(diffMin / 60);
+    var diffDay = Math.floor(diffHour / 24);
 
-        if (diffHour >= 24) {
-            var day = inputDate.getDate().toString().padStart(2, '0');
-            var month = (inputDate.getMonth() + 1).toString().padStart(2, '0');
-            return `${day}/${month}`;
-        } else if (diffHour >= 1) {
-            return `${diffHour} giờ`;
-        } else if (diffMin >= 1) {
-            return `${diffMin} phút`;
-        } else {
-            return `Vừa xong`;
-        }
+    if (diffHour >= 24) {
+        var day = inputDate.getDate().toString().padStart(2, '0');
+        var month = (inputDate.getMonth() + 1).toString().padStart(2, '0');
+        return `${day}/${month}`;
+    } else if (diffHour >= 1) {
+        return `${diffHour} giờ`;
+    } else if (diffMin >= 1) {
+        return `${diffMin} phút`;
+    } else {
+        return `Vừa xong`;
     }
+}
 
 </script>
 

@@ -4,6 +4,7 @@ using DTOs.MessageDTOs;
 using DTOs.UserDTOs;
 using Repositories.MessageRepository;
 using Repositories.UserRepository;
+using Services.ClouldinaryServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,10 +18,12 @@ namespace Services.MessageServices
     {
 
         private readonly IMessageRepository _messageRepository;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public MessageService(IMessageRepository messageRepository)
+        public MessageService(IMessageRepository messageRepository, ICloudinaryService cloudinaryService)
         {
             _messageRepository = messageRepository;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<ResponseDTO<List<MessageUserDTO>>> GetAllMessagesUser(int userId, int receiverId)
@@ -112,6 +115,46 @@ namespace Services.MessageServices
                 message = "Get list chat success",
                 success = true,
                 data = chatList
+            };
+        }
+
+        public async Task<ResponseDTO<string>> SendMessage(int userId, SendMessageDTO message)
+        {
+            List<Message> messages = new List<Message>();
+
+            if (message.Files != null && message.Files.Any())
+            {
+                foreach (var file in message.Files)
+                {
+                    var result = await _cloudinaryService.UpLoadFileAsync(file);
+                    if (result == null) continue;
+                    messages.Add(new Message
+                    {
+                        Content = result.Url,
+                        Type = result.Type,
+                        SenderId = userId,
+                        ReceiverId = message.ReceiverId,
+                    });
+                }
+            }
+            if (!string.IsNullOrEmpty(message.Content))
+            {
+                messages.Add(new Message
+                {
+                    Content = message.Content,
+                    Type = (int)Enums.MessageType.Text,
+                    SenderId = userId,
+                    ReceiverId = message.ReceiverId,
+                });
+            }
+
+            await _messageRepository.AddRange(messages);
+
+            return new ResponseDTO<string>
+            {
+                status = HttpStatusCode.OK,
+                message = "Send message success",
+                success = true,
             };
         }
     }

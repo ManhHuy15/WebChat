@@ -14,5 +14,7 @@ namespace Services.MessageServices
 
         Task<ResponseDTO<List<MessageUserDTO>>> GetAllMessagesUser(int userId, int receiverId);
 
+        Task<ResponseDTO<string>> SendMessage(int userId, SendMessageDTO message);
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using CloudinaryDotNet.Actions;
+using DTOs.MessageDTOs;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,6 @@ namespace Services.ClouldinaryServices
 {
     public interface ICloudinaryService
     {
-        Task<string> UpLoadFileAsync(IFormFile file);
+        Task<CloudinryURLResponseDTO> UpLoadFileAsync(IFormFile file);
     }
 }

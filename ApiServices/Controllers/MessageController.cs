@@ -63,15 +63,13 @@ namespace ApiServices.Controllers
         [HttpPost("send-message/{receiverId}")]
         public async Task<IActionResult> SendMessage([FromRoute] int receiverId,[FromForm] SendMessageDTO message)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))  return Unauthorized();
+            if (message.Files == null && !string.IsNullOrEmpty(message.Content)) return BadRequest("No content");
             try
             {
-                foreach (var file in message.files)
-                {
-                    var result = await _cloudinaryService.UpLoadFileAsync(file);
-                    Console.WriteLine(result);
-                }
-
-                return Ok();
+                var result = await _messageService.SendMessage(int.Parse(userId), message);
+                return Ok(result);
             }
             catch (Exception ex)
             {
