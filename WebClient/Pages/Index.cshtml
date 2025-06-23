@@ -209,13 +209,10 @@
         </div>
 
         <div id="chat-messages" class="chat-messages d-flex flex-column">
-            <div class="text-center text-muted my-2"><small>T7 31/05/2025</small></div>
-            <div class="d-flex flex-column align-items-end">
-                <div class="my-mes-bubble">Ảnh</div>
-                <div class="my-mes-bubble">À</div>
-                <div class="my-mes-bubble">Bsbsa</div>
-                <div class="my-mes-bubble">Nhanba</div>
-                <small class="message-time">15:14</small>
+            <div id="loading-spinner" class="text-center my-2" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
             </div>
         </div>
 
@@ -274,9 +271,9 @@
                         </div>
 
                     `);
-                            chatList.append(chatFileItem);
+                    chatList.append(chatFileItem);
                 });
-
+                scrollToBottom();
                 //sendMessage(reciverId,formData);
                 console.log("Gửi message thanh cong");
                 
@@ -305,6 +302,8 @@
 
         fetchChatItem();
         function fetchChatItem(){
+            $('#loading-spinner').show();
+            $('#chat-messages').children().not('#loading-spinner').hide();
             $.ajax({
                 url: API_URL + '/api/Message/list-chat',
                 type: 'GET',
@@ -317,8 +316,8 @@
                             data.forEach(function (item, index) {
                                 const contentSlice = item.contentPreview.length > 20 ?item.contentPreview.slice(0, 18) + "..." : item.contentPreview;
                                 var chatItem = $(`
-                                <a href="#" class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center chat-item ${index === 0 ? 'active' : ''}" onclick="openChat(${item.id},'${item.name}', ${item.avatar},${item.type})">
-                                    <img src="https://scontent.fhan15-1.fna.fbcdn.net/v/t39.30808-6/482019444_122183994404333369_5508670626021919815_n.png?stp=dst-jpg_tt6&_nc_cat=109&ccb=1-7&_nc_sid=2285d6&_nc_ohc=6Wm8HoVrr7YQ7kNvwHAcI2-&_nc_oc=AdndOHVw3uGmQPQe8GJR0VlBYXB-B8Oz49gzWSTKb3zb61Bwfnc_SYEQSf3NtGfGGwk&_nc_zt=23&_nc_ht=scontent.fhan15-1.fna&_nc_gid=_7k3Dmuxuu1TZTW0kieKqA&oh=00_AfNPJihpfAgRqDEA3_3Jiem3JZtvAvVgBiPrCg1OCXWSVQ&oe=6854629C" class="avatar" alt="">
+                                <a href="#" class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center chat-item ${index === 0 ? 'active' : ''}" onclick="openChat(${item.id},'${item.name}', '${item.avatar}',${item.type})">
+                                    <img src="${item.avatar}" width="40" class="avatar" alt="">
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between">
                                             <strong>${item.name}</strong>
@@ -332,7 +331,13 @@
                                 chatList.append(chatItem);
                             });
 
-                            fetchMessageUser(data[0].id)
+                            //fetchMessageUser(data[0].id)
+                        if (data.length > 0) {
+                            fetchMessageUser(data[0].id);
+                        } else {
+                            $('#loading-spinner').hide();
+                            $('#chat-messages').children().not('#loading-spinner').show();
+                        }
                     }else{
                         console.error(result.message);
                     }
@@ -374,7 +379,12 @@
 							}
 						});
 
-                        scrollToBottom();
+                        $('#loading-spinner').hide();
+                        $('#chat-messages').children().not('#loading-spinner').show();
+
+                        setTimeout(() => {
+                            scrollToBottom();
+                        }, 100);
 					}else{
                     }
 				},
@@ -424,6 +434,7 @@
                     </div>`;
             }
         }
+        
         function renderPreviewFileBubble(item,itemPreview,reciverId) {
             var type = item.type.split("/")[0];
             console.log(type);
@@ -485,13 +496,14 @@
 				}
             });
         }
-
-        function scrollToBottom() {
-        }
-
     });
 
-  
+    function scrollToBottom() {
+        var chatMessages = document.getElementById('chat-messages');
+        if (chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
 
     function timeToNow(time) {
     var inputDate = new Date(time);
