@@ -204,6 +204,7 @@
                     <h6 class="mb-0" id="chat-name">Cloud của tôi</h6>
                     <small class="text-muted">Lưu và đồng bộ dữ liệu giữa các thiết bị</small>
                     <input type="hidden" id="chat-id" />
+                    <input type="hidden" id="chat-type" />
                 </div>
             </div>
         </div>
@@ -242,8 +243,10 @@
         $('#btn-send').on('click', async function (e) {
             e.preventDefault();
             const reciverId = $('#chat-id').val();
+            const chatType = $('#chat-type').val();
             var chatList = $('#chat-messages');
             var message = $('#chat-input').val();
+
             if (!reciverId) return;
             if (message == '' && selectedFiles.length == 0) return;
             try {
@@ -261,7 +264,6 @@
                 formData.append('content', message);
                 selectedFiles.forEach((data) => {
                     formData.append('files', data.file);
-                    console.log(data.file);
                     var chatFileItem = $(`
                         <div class="d-flex flex-column text-black align-items-end  position-relative">
                              ${renderPreviewFileBubble(data.file,data.preview,reciverId )}
@@ -274,7 +276,7 @@
                     chatList.append(chatFileItem);
                 });
                 scrollToBottom();
-                //sendMessage(reciverId,formData);
+                sendMessage(reciverId,formData,chatType);
                 console.log("Gửi message thanh cong");
                 
                 $('#chat-input').val('');
@@ -286,17 +288,19 @@
         });
  
         window.openChat = function(id, name, avatar ,type ){
-            if(type == 0){
-                var chatName = $('#chat-name');
-                var chatAvatar = $('#chat-avatar');
-                var userId = $('#chat-id');
+            var chatName = $('#chat-name');
+            var chatAvatar = $('#chat-avatar');
+            var userId = $('#chat-id');
+		    var chatType = $('#chat-type');
 
-                chatAvatar.attr('src', avatar);
-                chatName.text(name);
-                userId.val(id);
+            chatAvatar.attr('src', avatar);
+            chatName.text(name);
+            userId.val(id);
+            chatType.val(type);
+            if(type == 0){
                 fetchMessageUser(id);
             }else if( type == 1){
-
+                fetchMessageInGroup(id);
             }
         };
 
@@ -314,7 +318,10 @@
                         var chatList = $('#chatList');
                         chatList.empty();
                             data.forEach(function (item, index) {
-                                const contentSlice = item.contentPreview.length > 20 ?item.contentPreview.slice(0, 18) + "..." : item.contentPreview;
+                                var contentSlice = "";
+                                if(item.contentPreview != null){
+                                    contentSlice = item.contentPreview.length > 20 ?item.contentPreview.slice(0, 18) + "..." : item.contentPreview;
+                                }
                                 var chatItem = $(`
                                 <a href="#" class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center chat-item ${index === 0 ? 'active' : ''}" onclick="openChat(${item.id},'${item.name}', '${item.avatar}',${item.type})">
                                     <img src="${item.avatar}" width="40" class="avatar" alt="">
@@ -350,34 +357,33 @@
 
         function fetchMessageUser(reciverId){
             $.ajax({
-                url: API_URL + `/api/Message/get-messages/${reciverId}`,
-				type: 'GET',
-				contentType: 'application/json',
-				success : function(result){
-					if(result.success ){
+                url: API_URL + `/api/Message/get-messages/user/${reciverId}`,
+			    type: 'GET',
+			    contentType: 'application/json',
+			    success : function(result){
+				    if(result.success ){
                         var data = result.data;
                         var chatList = $('#chat-messages');
                         var chatName = $('#chat-name');
                         var chatAvatar = $('#chat-avatar');
                         var userId = $('#chat-id');
-                        console.log(data);
-						chatList.empty();
-						data.forEach(function (item, index) {
-							var chatItem = $(`
-								<div class="d-flex flex-column text-black align-items-end">
+					    chatList.empty();
+					    data.forEach(function (item, index) {
+						    var chatItem = $(`
+							    <div class="d-flex flex-column text-black align-items-end">
                                     ${item.receiver.userId != reciverId ? `<div class="align-self-start text-white"><small>${item.sender.fullName}</small></div>` : ''}
                                     ${renderMessageBubble(item,reciverId)}
                                     ${ index == data.length - 2 ? `<small class="message-time">${timeToNow(item.sentAt)}</small>` : '' }
-								</div>
-							`);
-							chatList.append(chatItem);
+							    </div>
+						    `);
+						    chatList.append(chatItem);
 
                             if(item.receiver.userId == reciverId){
-								chatAvatar.attr('src', item.receiver.avatar);
-								chatName.text(item.receiver.fullName);
-								userId.val(item.receiver.userId);
-							}
-						});
+							    chatAvatar.attr('src', item.receiver.avatar);
+							    chatName.text(item.receiver.fullName);
+							    userId.val(item.receiver.userId);
+						    }
+					    });
 
                         $('#loading-spinner').hide();
                         $('#chat-messages').children().not('#loading-spinner').show();
@@ -385,12 +391,54 @@
                         setTimeout(() => {
                             scrollToBottom();
                         }, 100);
-					}else{
+				    }else{
                     }
-				},
-				error: function (error){
-					console.error("Error fetching chat items:", error);
-				}
+			    },
+			    error: function (error){
+				    console.error("Error fetching chat items:", error);
+			    }
+            });
+        }
+
+        function fetchMessageInGroup(groupId){
+            var myId =  localStorage.getItem('id')
+            $.ajax({
+                url: API_URL + `/api/Message/get-messages/group/${groupId}`,
+                type: 'GET',
+                contentType: 'application/json',
+                success : function(result){
+                    var chatList = $('#chat-messages');
+                    groupId = 10;
+                    if(result.success ){
+                        var data = result.data;
+                        var chatName = $('#chat-name');
+                        var chatAvatar = $('#chat-avatar');
+                        var userId = $('#chat-id');
+                        chatList.empty();
+                        data.forEach(function (item, index) {
+                            var chatItem = $(`
+                                <div class="d-flex flex-column text-black align-items-end">
+                                        ${item.sender.userId != myId ? `<div class="align-self-start text-white"><small>${item.sender.fullName}</small></div>` : ''}
+                                            ${renderMessageGroupBubble(item,myId)}
+                                    ${ index == data.length - 2 ? `<small class="message-time">${timeToNow(item.sentAt)}</small>` : '' }
+                                </div>
+                            `);
+                            chatList.append(chatItem);
+                        });
+
+                        $('#loading-spinner').hide();
+                        $('#chat-messages').children().not('#loading-spinner').show();
+
+                        setTimeout(() => {
+                            scrollToBottom();
+                        }, 100);
+                    }else{
+                        chatList.empty();
+                    }
+                },
+                error: function (error){
+                    console.error("Error fetching chat items in group:", error);
+                }
             });
         }
 
@@ -435,9 +483,49 @@
             }
         }
         
+            function renderMessageGroupBubble(item,myId) {
+            switch (item.type) {
+                case 0:
+                     return `<div class=" text-break ${item.sender.userId == myId ? 'my-mes-bubble' :'other-mes-bubble'}">
+                                ${item.content}
+                            </div>`;
+                case 1:
+                    return `<div class=" text-break ${item.sender.userId == myId ? 'my-file-bubble' :'other-file-bubble'}">
+                                <img src="${item.content}"  class="m-h-12" alt="Image">
+                            </div>`;
+                case 2:
+                    return `<div class=" text-break ${item.sender.userId == myId ? 'my-file-bubble' :'other-file-bubble'}">
+                        <video controls="controls" class="m-h-12" >
+                            <source src="${item.content}"   type="video/mp4" />
+                        </video>
+                    </div>`;
+                case 3:
+                    return `<div class=" text-break ${item.sender.userId == myId ? 'my-file-bubble' :'other-file-bubble'}">
+                        <audio controls="controls">
+                            <source src="${item.content}"  type="audio/mpeg" />
+                        </audio>
+                    </div>`;
+                case 4:
+                    const lastSegment = item.content.split('/').pop();
+                    var filename = lastSegment.replace(/_(.*?)\./, '.')
+                    const dotIndex = filename.lastIndexOf('.');
+                    let name = filename.substring(0, dotIndex);
+                    let ext = filename.substring(dotIndex);
+                    if (name.length > 10) {
+                        name = name.substring(0, 10) + '...';
+                        filename = name + ext;
+                    }
+                            return `<div class="text-break ${item.sender.userId == myId ? 'my-file-bubble' :'other-file-bubble'}" style="background-color: #2b2b2b">
+                        <a href="${lastSegment}" download target="_blank">
+                            <i class="bi bi-file-earmark-text-fill ms-2 fs-2 text-white"></i>
+                            <span class="text-white me-2 fw-bold "> ${filename} </span>
+                        </a>
+                    </div>`;
+            }
+        }
+
         function renderPreviewFileBubble(item,itemPreview,reciverId) {
             var type = item.type.split("/")[0];
-            console.log(type);
             switch (type) {
                 case 0:
                     return `<div class=" text-break my-mes-bubble">
@@ -476,17 +564,22 @@
                         </div>`;
             }
         }
-        function sendMessage(reciverId, message){
+        function sendMessage(reciverId, message,chatType){
             $.ajax({
-                url: API_URL + `/api/Message/send-message/${reciverId}`,
+                url: API_URL + `/api/Message/send-message/${chatType}/${reciverId}`,
 				type: 'POST',
                 processData: false,
                 contentType: false,
                 data: message,
 				success : async function( result ){
 					if(result.success){
-                        await connection.invoke('SendMessage', reciverId);
-						fetchMessageUser(reciverId);
+
+                        if(chatType == 0){
+                            await connection.invoke('SendMessage', reciverId);
+						    fetchMessageUser(reciverId);
+                        }else if(chatType == 1 ){
+                            fetchMessageInGroup(reciverId);
+                        }
 					}else{
 						console.error(result.message);
 					}
@@ -506,26 +599,27 @@
     }
 
     function timeToNow(time) {
-    var inputDate = new Date(time);
-    var now = new Date();
-    var diffMs = now - inputDate;
-    var diffSec = Math.floor(diffMs / 1000);
-    var diffMin = Math.floor(diffSec / 60);
-    var diffHour = Math.floor(diffMin / 60);
-    var diffDay = Math.floor(diffHour / 24);
+        if(time == null) return "";
+        var inputDate = new Date(time);
+        var now = new Date();
+        var diffMs = now - inputDate;
+        var diffSec = Math.floor(diffMs / 1000);
+        var diffMin = Math.floor(diffSec / 60);
+        var diffHour = Math.floor(diffMin / 60);
+        var diffDay = Math.floor(diffHour / 24);
 
-    if (diffHour >= 24) {
-        var day = inputDate.getDate().toString().padStart(2, '0');
-        var month = (inputDate.getMonth() + 1).toString().padStart(2, '0');
-        return `${day}/${month}`;
-    } else if (diffHour >= 1) {
-        return `${diffHour} giờ`;
-    } else if (diffMin >= 1) {
-        return `${diffMin} phút`;
-    } else {
-        return `Vừa xong`;
+        if (diffHour >= 24) {
+            var day = inputDate.getDate().toString().padStart(2, '0');
+            var month = (inputDate.getMonth() + 1).toString().padStart(2, '0');
+            return `${day}/${month}`;
+        } else if (diffHour >= 1) {
+            return `${diffHour} giờ`;
+        } else if (diffMin >= 1) {
+            return `${diffMin} phút`;
+        } else {
+            return `Vừa xong`;
+        }
     }
-}
 
 </script>
 

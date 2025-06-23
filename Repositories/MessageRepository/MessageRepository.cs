@@ -21,7 +21,8 @@ namespace Repositories.MessageRepository
         }
         public async Task<List<Message>> GetChatList(int userId)
         {
-            var messages = await _messageDAO.GetListMessageByCondition(x => x.SenderId == userId || x.ReceiverId == userId)
+            var messages = await _messageDAO.GetListMessageByCondition(x => (x.SenderId == userId && x.ReceiverId != null ) 
+                                                                            || x.ReceiverId == userId)
                                             .Select(m => new
                                             {
                                                 Message = m,
@@ -40,5 +41,8 @@ namespace Repositories.MessageRepository
             ).ToListAsync();
         }
         public Task AddRange(List<Message> messages) => _messageDAO.AddRange(messages);
+
+        public Task<List<Message>> GetAllMessagesInGroup(int groupId) => _messageDAO.GetListMessageByCondition(x => x.GroupId == groupId).ToListAsync();
+        
     }
 }

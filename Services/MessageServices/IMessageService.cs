@@ -1,4 +1,5 @@
-﻿using DTOs;
+﻿using BusinessObjects;
+using DTOs;
 using DTOs.MessageDTOs;
 using System;
 using System.Collections.Generic;
@@ -13,8 +14,9 @@ namespace Services.MessageServices
         Task<ResponseDTO<List<ChatItemDTO>>> GetListChat(int userId);
 
         Task<ResponseDTO<List<MessageUserDTO>>> GetAllMessagesUser(int userId, int receiverId);
+        Task<ResponseDTO<List<MessageGroupDTO>>> GetAllMessagesInGroup(int groupId);
 
-        Task<ResponseDTO<string>> SendMessage(int userId, SendMessageDTO message);
+        Task<ResponseDTO<string>> SendMessage(int userId,int type, SendMessageDTO message);
 
     }
 }

@@ -13,7 +13,7 @@ namespace DTOs.MessageDTOs
         public string? Name { get; set; }
         public string? Avatar { get; set; }
         public string? ContentPreview { get; set; }
-        public DateTime Time { get; set; }
+        public DateTime? Time { get; set; }
         public bool IsRead { get; set; }
     }
 }

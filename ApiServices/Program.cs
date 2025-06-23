@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Repositories.GroupRepository;
 using Repositories.MessageRepository;
 using Repositories.UserRepository;
 using Services.AuthenServices;
@@ -92,10 +93,12 @@ namespace ApiServices
             // Add data access object to the container.
             builder.Services.AddScoped<UserDAO>();
             builder.Services.AddScoped<MessageDAO>();
+            builder.Services.AddScoped<GroupDAO>();
 
             // Add repositories to the container.
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+            builder.Services.AddScoped<IGroupRepository, GroupRepository>();
 
             // Add services to the container.
             builder.Services.AddScoped<IJWTService, JWTService>();

@@ -47,14 +47,13 @@ function refreshToken() {
         data: JSON.stringify(localStorage.getItem('refresh-token')),
         success: function (response) {
             if (response.status == 200) {
-                localStorage.setItem('refresh-token', response.data.refreshToken);
                 localStorage.setItem('access-token', response.data.accessToken);
-                localStorage.setItem('email', JSON.stringify(response.data.email));
             } else {
                 localStorage.removeItem('refresh-token');
                 localStorage.removeItem('access-token');
                 localStorage.removeItem('email');
                 localStorage.removeItem('expires');
+                localStorage.removeItem('id');
                 window.location.href = '/login';
             }
         }

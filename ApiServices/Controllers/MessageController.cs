@@ -1,4 +1,5 @@
-﻿using CloudinaryDotNet.Actions;
+﻿using BusinessObjects;
+using CloudinaryDotNet.Actions;
 using DTOs.MessageDTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -41,8 +42,8 @@ namespace ApiServices.Controllers
             }
         }
 
-        [HttpGet("get-messages/{receiverId}")]
-        public async Task<IActionResult> GetMessages([FromRoute] int receiverId)
+        [HttpGet("get-messages/{type}/{receiverId}")]
+        public async Task<IActionResult> GetMessages([FromRoute] string type, [FromRoute] int receiverId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
@@ -51,8 +52,17 @@ namespace ApiServices.Controllers
             }
             try
             {
-                var result = await _messageService.GetAllMessagesUser(int.Parse(userId), receiverId);
-                return Ok(result);
+                if (type == "group")
+                {
+                    var result = await _messageService.GetAllMessagesInGroup( receiverId);
+                    return Ok(result);
+                }
+                else if (type == "user")
+                {
+                    var result = await _messageService.GetAllMessagesUser(int.Parse(userId), receiverId);
+                    return Ok(result);
+                }
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -60,15 +70,15 @@ namespace ApiServices.Controllers
             }
         }
 
-        [HttpPost("send-message/{receiverId}")]
-        public async Task<IActionResult> SendMessage([FromRoute] int receiverId,[FromForm] SendMessageDTO message)
+        [HttpPost("send-message/{type}/{receiverId}")]
+        public async Task<IActionResult> SendMessage([FromRoute] int type, [FromRoute] int receiverId,[FromForm] SendMessageDTO message)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))  return Unauthorized();
-            if (message.Files == null && !string.IsNullOrEmpty(message.Content)) return BadRequest("No content");
+            if (message.Files == null && string.IsNullOrEmpty(message.Content)) return BadRequest("No content");
             try
             {
-                var result = await _messageService.SendMessage(int.Parse(userId), message);
+                 var result = await _messageService.SendMessage(int.Parse(userId), type, message);
                 return Ok(result);
             }
             catch (Exception ex)

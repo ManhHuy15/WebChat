@@ -48,6 +48,7 @@ namespace Services.AuthenServices
 
             return new UserLoginResponseDTO
             {
+                UserId = user.UserId,
                 Email = user.Email,
                 AccessToken = jwtToken,
                 TokenExpires = (int)_expiryTimesStamp.Subtract(DateTime.Now).TotalSeconds,

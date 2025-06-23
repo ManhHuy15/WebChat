@@ -1,7 +1,9 @@
 ﻿using BusinessObjects;
 using DTOs;
+using DTOs.GroupDTOs;
 using DTOs.MessageDTOs;
 using DTOs.UserDTOs;
+using Repositories.GroupRepository;
 using Repositories.MessageRepository;
 using Repositories.UserRepository;
 using Services.ClouldinaryServices;
@@ -18,12 +20,69 @@ namespace Services.MessageServices
     {
 
         private readonly IMessageRepository _messageRepository;
+        private readonly IGroupRepository _groupRepository;
         private readonly ICloudinaryService _cloudinaryService;
 
-        public MessageService(IMessageRepository messageRepository, ICloudinaryService cloudinaryService)
+        public MessageService(IMessageRepository messageRepository, ICloudinaryService cloudinaryService, IGroupRepository groupRepository)
         {
             _messageRepository = messageRepository;
             _cloudinaryService = cloudinaryService;
+            _groupRepository = groupRepository;
+        }
+
+        public async Task<ResponseDTO<List<MessageGroupDTO>>> GetAllMessagesInGroup(int groupId)
+        {
+            var messages = await _messageRepository.GetAllMessagesInGroup(groupId);
+
+            if (messages == null || !messages.Any())
+            {
+                return new ResponseDTO<List<MessageGroupDTO>>
+                {
+                    status = HttpStatusCode.OK,
+                    message = "No messages found",
+                    success = false,
+                    data = new List<MessageGroupDTO>()
+                };
+            }
+
+            var result = messages.Select(x => new MessageGroupDTO
+            {
+
+                Content = x.Content,
+                SentAt = x.SentAt,
+                Type = x.Type,
+                Sender = new UserBaseDTO
+                {
+                    UserId = x.SenderId,
+                    FullName = x.Sender.FullName,
+                    Avatar = x.Sender.Avatar,
+                    Email = x.Sender.Email
+                },
+                Group = new GroupBaseDTO
+                {
+                    GroupId = x.GroupId,
+                    Name = x.Group.Name,
+                    Avatar = x.Group.Avatar
+                },
+                MessageStatuses = x.MessageStatuses.Select(ms => new MessageStatusDTO
+                {
+                    IsRead = ms.IsRead,
+                    UpdatedAt = ms.UpdatedAt,
+                    User = new UserBaseDTO
+                    {
+                        FullName = ms.User.FullName,
+                        Avatar = ms.User.Avatar
+                    }
+                }).ToList()
+            }).ToList();
+
+            return new ResponseDTO<List<MessageGroupDTO>>
+            {
+                status = HttpStatusCode.OK,
+                message = "Get all messages success",
+                success = true,
+                data = result
+            };
         }
 
         public async Task<ResponseDTO<List<MessageUserDTO>>> GetAllMessagesUser(int userId, int receiverId)
@@ -82,6 +141,7 @@ namespace Services.MessageServices
         public async Task<ResponseDTO<List<ChatItemDTO>>> GetListChat(int userId)
         {
             var messages = await _messageRepository.GetChatList(userId);
+            var groupList = await _groupRepository.GetGroupMemberByCondition(userId);
 
             if (messages == null || !messages.Any())
             {
@@ -94,7 +154,6 @@ namespace Services.MessageServices
                 };
             }
 
-
             var chatList = messages.Select(x => new ChatItemDTO
             {
                 Id = x.SenderId == userId ? x.ReceiverId : x.SenderId,
@@ -106,8 +165,17 @@ namespace Services.MessageServices
                 IsRead = false
             }).OrderByDescending(m => m.Time).ToList();
 
-
             //Ket hợp với danh sách nhóm chat
+            chatList.AddRange(groupList.Select(x => new ChatItemDTO
+            {
+                Id = x.GroupId,
+                Name = x.Group.Name,
+                Avatar = x.Group.Avatar,
+                ContentPreview = x.Group.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault()?.Content,
+                Time = x.Group.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault()?.SentAt,
+                Type = (int)Enums.ChatItemType.Group,
+                IsRead = false,
+            }).OrderByDescending(m => m.Time).ToList());
 
             return new ResponseDTO<List<ChatItemDTO>>
             {
@@ -118,7 +186,7 @@ namespace Services.MessageServices
             };
         }
 
-        public async Task<ResponseDTO<string>> SendMessage(int userId, SendMessageDTO message)
+        public async Task<ResponseDTO<string>> SendMessage(int userId,int type, SendMessageDTO message)
         {
             List<Message> messages = new List<Message>();
 
@@ -133,7 +201,8 @@ namespace Services.MessageServices
                         Content = result.Url,
                         Type = result.Type,
                         SenderId = userId,
-                        ReceiverId = message.ReceiverId,
+                        ReceiverId = type == (int)Enums.ChatItemType.User ? message.ReceiverId : null,
+                        GroupId = type == (int)Enums.ChatItemType.Group ? message.ReceiverId : null
                     });
                 }
             }
@@ -144,7 +213,8 @@ namespace Services.MessageServices
                     Content = message.Content,
                     Type = (int)Enums.MessageType.Text,
                     SenderId = userId,
-                    ReceiverId = message.ReceiverId,
+                    ReceiverId = type == (int)Enums.ChatItemType.User ? message.ReceiverId : null,
+                    GroupId = type == (int)Enums.ChatItemType.Group ? message.ReceiverId : null
                 });
             }
 
