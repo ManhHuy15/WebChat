@@ -101,7 +101,6 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/jwt-refresh.js" asp-append-version="true"></script>
-	<script src="~/js/signalR-connection.js" asp-append-version="true"></script>
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"/>
     <script type="text/javascript"
             src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/9.0.0/mdb.umd.min.js"></script>
@@ -112,5 +111,6 @@
         const API_URL = "@apiBaseUrl";
     </script>
     @await RenderSectionAsync("Scripts", required: false)
+    <script src="~/js/signalR-connection.js" asp-append-version="true"></script>
 </body>
 </html>

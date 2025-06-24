@@ -141,7 +141,7 @@ namespace Services.MessageServices
         public async Task<ResponseDTO<List<ChatItemDTO>>> GetListChat(int userId)
         {
             var messages = await _messageRepository.GetChatList(userId);
-            var groupList = await _groupRepository.GetGroupMemberByCondition(userId);
+            var groupList = await _groupRepository.GetMyGroupMember(userId);
 
             if (messages == null || !messages.Any())
             {
@@ -176,6 +176,8 @@ namespace Services.MessageServices
                 Type = (int)Enums.ChatItemType.Group,
                 IsRead = false,
             }).OrderByDescending(m => m.Time).ToList());
+
+            chatList = chatList.OrderByDescending(x => x.Time).ToList();
 
             return new ResponseDTO<List<ChatItemDTO>>
             {

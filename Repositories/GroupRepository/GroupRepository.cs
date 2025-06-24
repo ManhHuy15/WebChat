@@ -18,7 +18,7 @@ namespace Repositories.GroupRepository
             _groupDAO = groupDAO;
         }
 
-        public async Task<List<GroupMember>> GetGroupMemberByCondition(int userId) => await _groupDAO.GetGroupMemberByCondition(gm => gm.UserId == userId).ToListAsync();
+        public async Task<List<GroupMember>> GetMyGroupMember(int userId) => await _groupDAO.GetGroupMemberByCondition(gm => gm.UserId == userId).ToListAsync();
         
     }
 }

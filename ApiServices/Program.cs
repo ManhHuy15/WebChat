@@ -17,6 +17,7 @@ using Repositories.UserRepository;
 using Services.AuthenServices;
 using Services.AuthenServices.InterfaceAuthen;
 using Services.ClouldinaryServices;
+using Services.GroupServices;
 using Services.MessageServices;
 using Services.UserServices;
 using System.Text;
@@ -107,6 +108,7 @@ namespace ApiServices
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IMessageService, MessageService>();
             builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+            builder.Services.AddScoped<IGroupService, GroupService>();
             builder.Services.AddSignalR();
 
             builder.Services.AddControllers();

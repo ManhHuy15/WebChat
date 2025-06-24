@@ -16,10 +16,21 @@ namespace ApiServices.Chat
             return base.OnDisconnectedAsync(exception);
         }
 
-        public async Task SendMessage(string UserId)
+        public async Task SendMessage(string senderId,string receiverId)
         {
-            await Clients.User(UserId).SendAsync("ReceiveMessage");
+            await Clients.User(receiverId).SendAsync("ReceiveMessage", senderId);
+        }
 
+        public async Task JoinGroup(string groupName)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+
+            await Clients.Group(groupName).SendAsync("AddToGroupResponse", $"{Context.ConnectionId} has joined the group {groupName}.");
+        }
+
+        public async Task SendMessageToGroup(string groupName, string groupId)
+        {
+            await Clients.GroupExcept(groupName, Context.ConnectionId).SendAsync("ReceiveGroupMessage", groupId);
         }
     }
 }

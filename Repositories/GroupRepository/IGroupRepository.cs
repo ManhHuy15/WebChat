@@ -9,6 +9,6 @@ namespace Repositories.GroupRepository
 {
     public interface IGroupRepository
     {
-         Task<List<GroupMember>> GetGroupMemberByCondition(int userId);
+         Task<List<GroupMember>> GetMyGroupMember(int userId);
     }
 }
