@@ -22,7 +22,7 @@ namespace Services.AuthenServices
         private readonly IUserRepository _userRepository;
         private readonly IJWTService _jwtService;
         private readonly IPasswordHashingService _passwordHashingService;
-        
+        private readonly string AVATAR_DEFAULT = "https://res.cloudinary.com/ddg2gdfee/image/upload/v1750643519/default_avata_dry3fp.png";
 
         public AuthService(IUserRepository userRepository, IJWTService jwtService, IPasswordHashingService passwordHashingService)
         {
@@ -97,6 +97,7 @@ namespace Services.AuthenServices
 
             User newUser = new User{
                 FullName = registerUserDTOs.FullName,
+                Avatar = AVATAR_DEFAULT,
                 Email = registerUserDTOs.Email,
                 Birth = registerUserDTOs.Birth,
                 Gender = registerUserDTOs.Gender,
@@ -135,6 +136,7 @@ namespace Services.AuthenServices
                 {
                     FullName = name,
                     Email = email,
+                    Avatar = AVATAR_DEFAULT,
                     Password = _passwordHashingService.HashPassword(id),
                     Role = (int)Enums.Role.User,
                     GoogleId = id,

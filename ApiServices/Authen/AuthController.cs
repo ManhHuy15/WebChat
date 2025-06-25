@@ -96,6 +96,7 @@ namespace ApiServices.Authen
                 var html = $@"
                         <script>
                             window.opener.postMessage({{ 
+                                UserId: '{result.data.UserId}',
                                 Status: '{result.status.GetHashCode()}',
                                 Email: '{result.data.Email}',
                                 AccessToken: '{result.data.AccessToken}',

@@ -3,8 +3,705 @@
 @{
     ViewData["Title"] = "Home page";
 }
+<style>
+    .chat-sidebar {
+        width: 22em;
+        overflow-y: auto;
+        background-color: #1f1f1f;
+        margin: 0 1rem 0 0;
+		border-radius: 0.5rem;
+        height: 95vh;
+    }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    .chat-item{
+        background-color: transparent;
+    }
+
+    .chat-item:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+    }
+
+    .chat-item.active {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #212529;
+        border-width: 0;
+        border-radius: 0.5rem;
+        border-top-width: 0px !important;
+    }
+
+    .chat-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: #1f1f1f;
+        margin: 0 1rem 0 0;
+        border-radius: 0.5rem;
+        height: 95vh;
+    }
+
+    .chat-header {
+        flex: 0 0 auto;
+        border-bottom: 1px solid black;
+        padding: 1rem;
+        background-color: #1f1f1f;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+
+    .chat-messages {
+        flex: 1 1 auto;
+        flex-grow: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1rem;
+        background-color: #1f1f1f;
+    }
+
+    #chat-messages::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    #chat-messages::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    #chat-messages::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
+
+
+    .chat-footer {
+        flex: 0 0 auto;
+        padding: 0.75rem;
+        background-color: #1f1f1f;
+        border-radius: 0 0 0.5rem 0.5rem;
+    }
+
+    .my-mes-bubble {
+        max-width: 70%;
+        background-color: #e0f0ff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        align-self: flex-end;
+    }
+
+	.other-mes-bubble {
+		max-width: 70%;
+        background-color: #2c2c2c;
+		padding: 8px 12px;
+		border-radius: 8px;
+		margin-bottom: 5px;
+		align-self: flex-start;
+        color : white;
+	}
+
+    .my-file-bubble {
+        max-width: 70%;
+        background-color: white;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        align-self: flex-end;
+    }
+
+    .other-file-bubble {
+        max-width: 70%;
+        background-color: white;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        align-self: flex-start;
+        max-height: 200px;
+    }
+
+    .message-time {
+        font-size: 0.8rem;
+        color: gray;
+        align-self: center;
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    .m-h-12{
+      max-height: 12rem;
+        width: 100%;
+    }
+</style>
+<style>
+    .preview-box {
+        width: 50px;
+        height: 50px;
+        position: relative;
+        border: 1px solid #ddd;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        background-color: #f8f9fa;
+    }
+
+    .preview-file-box {
+        width: 100px;
+        height: 50px;
+		position: relative;
+		border: 1px solid #ddd;
+		border-radius: 0.5rem;
+		overflow: hidden;
+        background-color: #2b2b2b;
+    }
+
+
+    .preview-box img,
+    .preview-box video {
+        object-fit: cover;
+        width: 100%;
+        height: 100%;
+    }
+
+   
+    .preview-file-text {
+        font-size: 0.75rem;
+        padding: 0.5rem;
+        word-break: break-word;
+        text-align: center;
+    }
+
+    .btn-remove-file {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        z-index: 2;
+    }
+</style>
+
+<div class="d-flex h-100 py-3">
+    <div class="chat-sidebar d-flex flex-column">
+        <div class="p-3 d-flex align-items-center justify-content-between">
+            <div class="input-group rounded w-75">
+                <input type="search" class="form-control rounded  " placeholder="Search" aria-label="Search" aria-describedby="search-addon" />
+            </div>
+            <div class="p-2 ">
+                <i class="fas fa-users fs-5 text-white"></i>
+            </div>
+        </div>
+
+        <div class="list-group list-group-flush flex-grow-1 px-2" id="chatList">
+        </div>
+    </div>
+
+    <div id="chat-content" class="chat-content text-white  d-flex flex-column">
+        <div class="chat-header d-flex justify-content-between align-items-center">
+            <div class="d-flex gap-2">
+                <img id="chat-avatar" src="https://scontent.fhan15-1.fna.fbcdn.net/v/t39.30808-6/482019444_122183994404333369_5508670626021919815_n.png?stp=dst-jpg_tt6&_nc_cat=109&ccb=1-7&_nc_sid=2285d6&_nc_ohc=6Wm8HoVrr7YQ7kNvwHAcI2-&_nc_oc=AdndOHVw3uGmQPQe8GJR0VlBYXB-B8Oz49gzWSTKb3zb61Bwfnc_SYEQSf3NtGfGGwk&_nc_zt=23&_nc_ht=scontent.fhan15-1.fna&_nc_gid=_7k3Dmuxuu1TZTW0kieKqA&oh=00_AfNPJihpfAgRqDEA3_3Jiem3JZtvAvVgBiPrCg1OCXWSVQ&oe=6854629C" class="avatar" alt="">
+                <div>
+                    <h6 class="mb-0" id="chat-name">Cloud của tôi</h6>
+                    <small class="text-muted">Lưu và đồng bộ dữ liệu giữa các thiết bị</small>
+                    <input type="hidden" id="chat-id" />
+                    <input type="hidden" id="chat-type" />
+                </div>
+            </div>
+        </div>
+
+        <div id="chat-messages" class="chat-messages d-flex flex-column">
+            <div id="loading-spinner" class="text-center my-2" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-footer">
+            <div id="preview-wrapper" class="mb-2 d-flex gap-2 flex-wrap"></div>
+
+            <div class="d-flex align-items-center gap-2">
+                <input type="file" id="file-input" multiple class="d-none"  accept="image/*,video/*,.pdf,.doc,.docx,.txt">
+                <i class="bi bi-paperclip fs-5 text-primary" role="button" id="btn-select-file"></i>
+                <input type="text" class="form-control" id="chat-input" placeholder="Nhập tin nhắn tới Cloud của tôi">
+                <i class="fas fa-paper-plane fs-5 text-primary" id="btn-send" role="button"></i>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+<script>
+    var chatName = $('#chat-name');
+    var chatAvatar = $('#chat-avatar');
+    var chatId = $('#chat-id');
+    var chatType = $('#chat-type');
+
+    $(function () {
+        $('#chatList').on('click', '.chat-item', function (e) {
+            e.preventDefault();
+            $('.chat-item').removeClass('active');
+            $(this).addClass('active');
+        });
+
+
+        $('#btn-send').on('click', async function (e) {
+            e.preventDefault();
+            const reciverId = chatId.val();
+            const typeChat = chatType.val();
+            var chatList = $('#chat-messages');
+            var message = $('#chat-input').val();
+
+            if (!reciverId) return;
+            if (message == '' && selectedFiles.length == 0) return;
+            try {
+                if(message != '' ){
+                    var chatItem = $(` <div class="d-flex flex-column text-black align-items-end">
+                                    <div class="my-mes-bubble">${message}</div>
+                                </div>
+                            `);
+                }
+               
+                chatList.append(chatItem);
+
+                var formData = new FormData();
+                formData.append('receiverId', reciverId);
+                formData.append('content', message);
+                selectedFiles.forEach((data) => {
+                    formData.append('files', data.file);
+                    var chatFileItem = $(`
+                        <div class="d-flex flex-column text-black align-items-end  position-relative">
+                             ${renderPreviewFileBubble(data.file,data.preview,reciverId )}
+                            <div class="spinner-border text-primary spinner-border-sm position-absolute" style="right: 5px;bottom: 10px;" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+
+                    `);
+                    chatList.append(chatFileItem);
+                });
+                scrollToBottom();
+                sendMessage(reciverId,formData,typeChat);
+                console.log("Gửi message thanh cong");
+                
+                $('#chat-input').val('');
+                selectedFiles = [];
+                renderPreviews()
+            } catch (err) {
+                console.error('Send MessageTo User error:', err);
+            }
+        });
+ 
+        window.openChat = function(id, name, avatar ,type ){
+        
+
+            chatAvatar.attr('src', avatar);
+            chatName.text(name);
+            chatId.val(id);
+            chatType.val(type);
+            if(type == 0){
+                fetchMessageUser(id);
+            }else if( type == 1){
+                fetchMessageInGroup(id);
+            }
+        };
+
+        fetchChatItem();
+        function fetchChatItem(){
+            $('#loading-spinner').show();
+            $('#chat-messages').children().not('#loading-spinner').hide();
+            $.ajax({
+                url: API_URL + '/api/Message/list-chat',
+                type: 'GET',
+                contentType: 'application/json',
+                success : function( result ){
+                    if(result.success){
+                        var data = result.data;
+                        var chatList = $('#chatList');
+                        chatList.empty();
+                        data.forEach(function (item, index) {
+                            var contentSlice = "";
+                            if(item.contentPreview != null){
+                                contentSlice = item.contentPreview.length > 20 ?item.contentPreview.slice(0, 18) + "..." : item.contentPreview;
+                            }
+                            var chatItem = $(`
+                            <a href="#" class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center chat-item ${index === 0 ? 'active' : ''}" onclick="openChat(${item.id},'${item.name}', '${item.avatar}',${item.type})">
+                                <img src="${item.avatar}" width="40" class="avatar" alt="">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>${item.name}</strong>
+                                        <small class="text-muted">${timeToNow(item.time)}</small>
+                                    </div>
+                                        <div class="text-muted text-truncate">${contentSlice}</div>
+                                </div>
+                            </a>
+                        `);
+                              
+                            chatList.append(chatItem);
+                        });
+
+                        if (data.length > 0) {
+                            if(data[0].type == 0){
+                                fetchMessageUser(data[0].id)
+                            }else if(data[0].type == 1){
+                                fetchMessageInGroup(data[0].id)
+                            }
+                        } else {
+                            $('#loading-spinner').hide();
+                            $('#chat-messages').children().not('#loading-spinner').show();
+                        }
+                    }else{
+                        console.error(result.message);
+                    }
+                },
+                error: function (error){
+                    console.error("Error fetching chat items:", error);
+                }
+            })
+        }
+
+        function renderPreviewFileBubble(item,itemPreview,reciverId) {
+            var type = item.type.split("/")[0];
+            switch (type) {
+                case 0:
+                    return `<div class=" text-break my-mes-bubble">
+                                ${item.content}
+                            </div>`;
+                case "image":
+                    return `<div class=" text-break my-file-bubble">
+                                    <img src="${itemPreview}" class="m-h-12" alt="Image">
+                            </div>`;
+                case "video":
+                    return `<div class=" text-break my-file-bubble">
+                        <video  class="m-h-12" >
+                                  <source src="${itemPreview}"   type="video/mp4" />
+                        </video>
+                    </div>`;
+                case 3:
+                    return `<div class=" text-break my-file-bubble">
+                        <audio >
+                                  <source src="${itemPreview}"  type="audio/mpeg" />
+                        </audio>
+                    </div>`;
+                default:
+                    var filename = item.name;
+                    const dotIndex =  item.name.lastIndexOf('.');
+                    let name = item.name.substring(0, dotIndex);
+                    let ext = item.name.substring(dotIndex);
+                    if (name.length > 10) {
+                        name = name.substring(0, 10) + '...';
+                        filename = name + ext;
+                    }
+                    return `<div class="text-break my-file-bubble" style="background-color: #2b2b2b">
+                                <a href="#" target="_blank">
+                                    <i class="bi bi-file-earmark-text-fill ms-2 fs-2 text-white"></i>
+                                    <span class="text-white me-2 fw-bold "> ${filename} </span>
+                                </a>
+                        </div>`;
+            }
+        }
+
+        function sendMessage(reciverId, message,chatType){
+            var senderId = localStorage.getItem('id');
+            $.ajax({
+                url: API_URL + `/api/Message/send-message/${chatType}/${reciverId}`,
+				type: 'POST',
+                processData: false,
+                contentType: false,
+                data: message,
+				success : async function( result ){
+					if(result.success){
+                        if(chatType == 0){
+                            await connection.invoke('SendMessage',senderId ,reciverId);
+						    fetchMessageUser(reciverId);
+                        }else if(chatType == 1 ){
+                                    await connection.invoke('SendMessageToGroup', chatName.text(), chatId.val());
+                            fetchMessageInGroup(reciverId);
+                        }
+					}else{
+						console.error(result.message);
+					}
+				},
+				error: function (error){
+					console.error("Error fetching chat items:", error);
+				}
+            });
+        }
+    });
+
+    function scrollToBottom() {
+        var chatMessages = document.getElementById('chat-messages');
+        if (chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+
+    function timeToNow(time) {
+        if(time == null) return "";
+        var inputDate = new Date(time);
+        var now = new Date();
+        var diffMs = now - inputDate;
+        var diffSec = Math.floor(diffMs / 1000);
+        var diffMin = Math.floor(diffSec / 60);
+        var diffHour = Math.floor(diffMin / 60);
+        var diffDay = Math.floor(diffHour / 24);
+
+        if (diffHour >= 24) {
+            var day = inputDate.getDate().toString().padStart(2, '0');
+            var month = (inputDate.getMonth() + 1).toString().padStart(2, '0');
+            return `${day}/${month}`;
+        } else if (diffHour >= 1) {
+            return `${diffHour} giờ`;
+        } else if (diffMin >= 1) {
+            return `${diffMin} phút`;
+        } else {
+            return `Vừa xong`;
+        }
+    }
+
+    function fetchMessageUser(reciverId){
+        $.ajax({
+            url: API_URL + `/api/Message/get-messages/user/${reciverId}`,
+            type: 'GET',
+            contentType: 'application/json',
+            success : function(result){
+                if(result.success ){
+                    var data = result.data;
+                    var chatList = $('#chat-messages');
+                    chatType.val(0);
+                    chatList.empty();
+                    data.forEach(function (item, index) {
+                        var chatItem = $(`
+                            <div class="d-flex flex-column text-black align-items-end">
+                                ${item.receiver.userId != reciverId ? `<div class="align-self-start text-white"><small>${item.sender.fullName}</small></div>` : ''}
+                                ${renderMessageBubble(item,reciverId)}
+                                ${ index == data.length - 2 ? `<small class="message-time">${timeToNow(item.sentAt)}</small>` : '' }
+                            </div>
+                        `);
+                        chatList.append(chatItem);
+
+                        if(item.receiver.userId == reciverId){
+                            chatAvatar.attr('src', item.receiver.avatar);
+                            chatName.text(item.receiver.fullName);
+                            chatId.val(item.receiver.userId);
+                        }
+                    });
+
+                    $('#loading-spinner').hide();
+                    $('#chat-messages').children().not('#loading-spinner').show();
+
+                    setTimeout(() => {
+                        scrollToBottom();
+                    }, 100);
+                }else{
+                }
+            },
+            error: function (error){
+                console.error("Error fetching chat items:", error);
+            }
+        });
+    }
+    function renderMessageBubble(item,reciverId) {
+        switch (item.type) {
+            case 0:
+                return `<div class=" text-break ${item.receiver.userId == reciverId ? 'my-mes-bubble' :'other-mes-bubble'}">
+                            ${item.content}
+                        </div>`;
+            case 1:
+                return `<div class=" text-break ${item.receiver.userId == reciverId ? 'my-file-bubble' :'other-file-bubble'}">
+                            <img src="${item.content}"  class="m-h-12" alt="Image">
+                        </div>`;
+            case 2:
+                return `<div class=" text-break ${item.receiver.userId == reciverId ? 'my-file-bubble' :'other-file-bubble'}">
+                    <video controls="controls" class="m-h-12" >
+                        <source src="${item.content}"   type="video/mp4" />
+                    </video>
+                </div>`;
+            case 3:
+                return `<div class=" text-break ${item.receiver.userId == reciverId ? 'my-file-bubble' :'other-file-bubble'}">
+                    <audio controls="controls">
+                        <source src="${item.content}"  type="audio/mpeg" />
+                    </audio>
+                </div>`;
+            case 4:
+                const lastSegment = item.content.split('/').pop();
+                var filename = lastSegment.replace(/_(.*?)\./, '.')
+                const dotIndex = filename.lastIndexOf('.');
+                let name = filename.substring(0, dotIndex);
+                let ext = filename.substring(dotIndex);
+                if (name.length > 10) {
+                    name = name.substring(0, 10) + '...';
+                    filename = name + ext;
+                }
+                return `<div class="text-break ${item.receiver.userId == reciverId ? 'my-file-bubble' :'other-file-bubble'}" style="background-color: #2b2b2b">
+                    <a href="${lastSegment}" download target="_blank">
+                        <i class="bi bi-file-earmark-text-fill ms-2 fs-2 text-white"></i>
+                        <span class="text-white me-2 fw-bold "> ${filename} </span>
+                    </a>
+                </div>`;
+        }
+    }
+    function fetchMessageInGroup(groupId){
+            var myId =  localStorage.getItem('id')
+            $.ajax({
+                url: API_URL + `/api/Message/get-messages/group/${groupId}`,
+                type: 'GET',
+                contentType: 'application/json',
+                success : function(result){
+                    var chatList = $('#chat-messages');
+                    groupId = 10;
+                    if(result.success ){
+                        var data = result.data;
+                        chatType.val(1);
+                        chatList.empty();
+                        data.forEach(function (item, index) {
+                            var chatItem = $(`
+                                <div class="d-flex flex-column text-black align-items-end">
+                                        ${item.sender.userId != myId ? `<div class="align-self-start text-white"><small>${item.sender.fullName}</small></div>` : ''}
+                                        ${renderMessageGroupBubble(item,myId)}
+                                    ${ index == data.length - 2 ? `<small class="message-time">${timeToNow(item.sentAt)}</small>` : '' }
+                                </div>
+                            `);
+                            chatList.append(chatItem);
+                        });
+
+                        chatAvatar.attr('src', data[0].group.avatar);
+                        chatName.text(data[0].group.name);
+                        chatId.val(data[0].group.groupId);
+
+                        $('#loading-spinner').hide();
+                        $('#chat-messages').children().not('#loading-spinner').show();
+
+                        setTimeout(() => {
+                            scrollToBottom();
+                        }, 100);
+                    }else{
+                        chatList.empty();
+                    }
+                },
+                error: function (error){
+                    console.error("Error fetching chat items in group:", error);
+                }
+            });
+        }
+    function renderMessageGroupBubble(item,myId) {
+        switch (item.type) {
+            case 0:
+                    return `<div class=" text-break ${item.sender.userId == myId ? 'my-mes-bubble' :'other-mes-bubble'}">
+                            ${item.content}
+                        </div>`;
+            case 1:
+                return `<div class=" text-break ${item.sender.userId == myId ? 'my-file-bubble' :'other-file-bubble'}">
+                            <img src="${item.content}"  class="m-h-12" alt="Image">
+                        </div>`;
+            case 2:
+                return `<div class=" text-break ${item.sender.userId == myId ? 'my-file-bubble' :'other-file-bubble'}">
+                    <video controls="controls" class="m-h-12" >
+                        <source src="${item.content}"   type="video/mp4" />
+                    </video>
+                </div>`;
+            case 3:
+                return `<div class=" text-break ${item.sender.userId == myId ? 'my-file-bubble' :'other-file-bubble'}">
+                    <audio controls="controls">
+                        <source src="${item.content}"  type="audio/mpeg" />
+                    </audio>
+                </div>`;
+            case 4:
+                const lastSegment = item.content.split('/').pop();
+                var filename = lastSegment.replace(/_(.*?)\./, '.')
+                const dotIndex = filename.lastIndexOf('.');
+                let name = filename.substring(0, dotIndex);
+                let ext = filename.substring(dotIndex);
+                if (name.length > 10) {
+                    name = name.substring(0, 10) + '...';
+                    filename = name + ext;
+                }
+                        return `<div class="text-break ${item.sender.userId == myId ? 'my-file-bubble' :'other-file-bubble'}" style="background-color: #2b2b2b">
+                    <a href="${lastSegment}" download target="_blank">
+                        <i class="bi bi-file-earmark-text-fill ms-2 fs-2 text-white"></i>
+                        <span class="text-white me-2 fw-bold "> ${filename} </span>
+                    </a>
+                </div>`;
+        }
+    }
+
+    window.onSignalRMessage = function (userId) {
+        const currentChatId = $('#chat-id').val();
+        const currentChatType = $('#chat-type').val();
+
+        if (currentChatType == "0" && currentChatId == userId){
+            fetchMessageUser(userId);
+        }else if ( currentChatType == "1" ){
+
+        }
+    };
+</script>
+
+<script>
+    let selectedFiles = [];
+
+    function getFilePreviewHtml(file, previewUrl, index) {
+        let inner;
+        if (file.type.startsWith("image/")) {
+            inner = `<img src="${previewUrl}">`;
+        } else if (file.type.startsWith("video/")) {
+            inner = `<video src="${previewUrl}" muted autoplay loop></video>`;
+        } else {
+            const filename = file.name.length > 8 ? file.name.slice(0, 5) + "..." : file.name;
+                return `<div class="preview-file-box">
+                            <div class="preview-file-text d-flex align-items-center justify-content-center h-100">
+                                <i class="bi bi-file-earmark fs-3 text-white"></i>
+                                <span class="text-white fw-bold">${filename}</span>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white btn-sm btn-remove-file " data-index="${index}"></button>
+                        </div>`;
+        }
+        return `
+            <div class="preview-box">
+                ${inner}
+                 <button type="button" class="btn-close btn-close-white btn-sm btn-remove-file text-white" data-index="${index}"></button>
+            </div>`;
+    }
+
+    function renderPreviews() {
+        const wrapper = $('#preview-wrapper');
+        wrapper.empty();
+
+        selectedFiles.forEach((fileData, index) => {
+            const html = getFilePreviewHtml(fileData.file, fileData.preview, index);
+            wrapper.append(html);
+        });
+    }
+
+    $(document).ready(function () {
+        $('#btn-select-file').click(() => $('#file-input').click());
+
+        $('#file-input').change(function () {
+            const files = Array.from(this.files);
+            files.forEach(file => {
+                if(file.size > 1024 * 1024 * 10){
+					alert("File không được quá 10MB");
+					return;
+                } 
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    selectedFiles.push({
+                        file: file,
+                        preview: e.target.result
+                    });
+                    renderPreviews();
+                };
+                reader.readAsDataURL(file);
+            });
+           $(this).val('');
+        });
+
+        $('#preview-wrapper').on('click', '.btn-remove-file', function () {
+            const index = $(this).data('index');
+            selectedFiles.splice(index, 1);
+            renderPreviews();
+        });
+    });
+</script>
+}
+

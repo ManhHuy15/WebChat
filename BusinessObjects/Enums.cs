@@ -27,6 +27,12 @@ namespace BusinessObjects
             Admin,
         }
 
+        public enum ChatItemType
+        {
+            User,
+            Group
+        }
+
         public static string GetRoleName(int role)
         {
             switch (role)
@@ -37,6 +43,23 @@ namespace BusinessObjects
                     return "Admin";
                 default:
                     return "User";
+            }
+        }
+
+        public static int GetResourceTypeId(string resourceName)
+        {
+            switch (resourceName)
+            {
+                case "image":
+                    return (int)MessageType.Image;
+                case "video":
+                    return (int)MessageType.Video;
+                case "audio":
+                    return (int)MessageType.Audio;
+                case "raw":
+                    return (int)MessageType.File;
+                default:
+                    return (int)MessageType.Text;
             }
         }
     }

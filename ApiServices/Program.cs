@@ -1,16 +1,23 @@
 
+using ApiServices.Chat;
 using BusinessObjects;
+using CloudinaryDotNet;
 using DataAccess;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Repositories.GroupRepository;
 using Repositories.MessageRepository;
 using Repositories.UserRepository;
 using Services.AuthenServices;
 using Services.AuthenServices.InterfaceAuthen;
+using Services.ClouldinaryServices;
+using Services.GroupServices;
 using Services.MessageServices;
 using Services.UserServices;
 using System.Text;
@@ -22,15 +29,18 @@ namespace ApiServices
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            string connectionString = builder.Configuration.GetConnectionString("MyConnection");
-
+            var configuration = builder.Configuration;
+            string connectionString = configuration.GetConnectionString("MyConnection");
+            var cloudName = configuration.GetValue<string>("CloudinaryAccount:CloudName");
+            var apiKey = configuration.GetValue<string>("CloudinaryAccount:ApiKey");
+            var apiSecret = configuration.GetValue<string>("CloudinaryAccount:ApiSecret");
 
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 //options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddCookie()
             .AddGoogle(GoogleDefaults.AuthenticationScheme, options => {
@@ -46,7 +56,7 @@ namespace ApiServices
                     ValidAudience = builder.Configuration["JwtConfig:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtConfig:Key"])),
                     ValidateIssuer = true,
-                    ValidateAudience = true,
+                    ValidateAudience = false,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     ClockSkew = TimeSpan.Zero
@@ -61,6 +71,17 @@ namespace ApiServices
                             context.Response.Headers.Add("Token-Expired", "true");
                         }
                         return Task.CompletedTask;
+                    },
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
                     }
                 };
             }); ;
@@ -68,14 +89,17 @@ namespace ApiServices
 
             builder.Services.AddDbContext<WebChatContext>(options =>
                 options.UseSqlServer(connectionString));
+            builder.Services.AddSingleton(new Cloudinary(new Account(cloudName, apiKey, apiSecret)));
 
             // Add data access object to the container.
             builder.Services.AddScoped<UserDAO>();
             builder.Services.AddScoped<MessageDAO>();
+            builder.Services.AddScoped<GroupDAO>();
 
             // Add repositories to the container.
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+            builder.Services.AddScoped<IGroupRepository, GroupRepository>();
 
             // Add services to the container.
             builder.Services.AddScoped<IJWTService, JWTService>();
@@ -83,7 +107,9 @@ namespace ApiServices
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IMessageService, MessageService>();
-
+            builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+            builder.Services.AddScoped<IGroupService, GroupService>();
+            builder.Services.AddSignalR();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -130,7 +156,8 @@ namespace ApiServices
                                 )
                               .AllowAnyHeader()
                               .AllowAnyMethod()
-                              .AllowCredentials();
+                              .AllowCredentials()
+                              .SetIsOriginAllowed(origin => true);
                     });
             });
             var app = builder.Build();
@@ -147,6 +174,7 @@ namespace ApiServices
 
             app.MapControllers();
 
+            app.MapHub<ChatHub>("/hubs/chat");
             app.Run();
         }
     }
