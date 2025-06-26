@@ -22,5 +22,7 @@ namespace Repositories.UserRepository
 
         public Task Add(User user) => _userDAO.Add(user);
         public Task Update(User user) => _userDAO.Update(user);
+
+        public Task<List<User>> AllUser() => _userDAO.GetAll();
     }
 }

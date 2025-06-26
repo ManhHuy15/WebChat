@@ -9,12 +9,10 @@ using System.Threading.Tasks;
 
 namespace DataAccess
 {
-    public class GroupDAO
+    public class GroupDAO : BaseDAO
     {
-        private readonly WebChatContext _context;
-        public GroupDAO(WebChatContext context)
+        public GroupDAO(WebChatContext context) : base(context)
         {
-            _context = context;
         }
 
         public IQueryable<GroupMember> GetGroupMemberByCondition(Expression<Func<GroupMember, bool>> condition)

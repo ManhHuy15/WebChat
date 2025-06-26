@@ -9,12 +9,10 @@ using System.Threading.Tasks;
 
 namespace DataAccess
 {
-    public class MessageDAO
+    public class MessageDAO : BaseDAO
     {
-        private readonly WebChatContext _context;
-        public MessageDAO(WebChatContext context)
+        public MessageDAO(WebChatContext context) : base(context)
         {
-            _context = context;
         }
 
         public IQueryable<Message> GetListMessageByCondition(Expression<Func<Message, bool>> condition)
