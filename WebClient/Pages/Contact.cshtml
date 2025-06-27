@@ -116,7 +116,7 @@
     <div class="contact-sidebar d-flex flex-column">
         <div class="p-3 position-relative ">
             <div class="input-group rounded">
-                <input id="search-user" type="search" class="form-control rounded" placeholder="Search" aria-label="Search" aria-describedby="search-addon"/>
+                <input id="search-user" type="search" class="form-control rounded" placeholder="Search by name or email" aria-label="Search" aria-describedby="search-addon"/>
             </div>
             <ul id="search-list" class="search-list list-group list-group-flush position-absolute w-100 start-0 mt-3 px-3 py-1 d-none">
                 <li class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center  friend-bar ">
@@ -318,342 +318,432 @@
 </div>
 
 @section Scripts {
-<script>
-    function updateContentName(item) {
-        const iconHtml = item.find('i').prop('outerHTML');
-        const titleText = item.find('strong').text();
-        $('#content-name').html(`${iconHtml} ${titleText}`);
-    }
-
-    $(function () {
-        $('#contactList').on('click', '.contact-item', function (e) {
-            e.preventDefault();
-            $('.contact-item').removeClass('active');
-            $(this).addClass('active');
-            updateContentName($(this));
-        });
-        const firstItem = $('#contactList .contact-item').first();
-        updateContentName(firstItem);
-
-        fetchMyFriend('','asc');
-
-        $('#search-user').on('input', debounce(function (e) {
-            var keyword = $(this).val();
-            if (keyword.length >= 3) {
-
-                $('#search-list').removeClass('d-none');
-                handleSearch(keyword);
-            } else {
-                $('#search-list').addClass('d-none');
-                $('#search-list').empty();
-            }
-        }, 400)); 
-
-        $('#search-friends').on('input', debounce(function (e) {
-            var keyword = $(this).val();
-            var order = $('#sort-name').val();
-            fetchMyFriend(keyword,order);
-        }, 300));
-
-        $('#sort-name').on('change', function (e) {
-			var keyword = $('#search-friends').val();
-			var order = $(this).val();
-			fetchMyFriend(keyword,order);
-		});
-
-     });
-
-    function debounce(func, delay) {
-        let timeout;
-        return function(...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), delay);
-        };
-    }
-
-
-    function handleSearch(keyword){
-        $.ajax({
-            url: API_URL + `/api/User/get-all/?$filter=contains(Email,'${keyword}')&$top=10`,
-            type: 'GET',
-            contentType: 'application/json',
-            success: function (result) {
-                var list = $('#search-list');
-                list.empty();
-                if (result.length > 0) {
-                    result.forEach(function (item) {
-                        var li = $(`
-                             <li class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center friend-bar" onclick="viewFriendDetail('${item.userId}') ">
-                                <img src="${item.avatar}" width="40" class="avatar" alt="">
-                                <strong>${item.fullName}</strong>
-                            </li>
-                        `);
-                        list.append(li);
-                    });
-                } else {
-                    list.append('<li class="list-group-item text-white">No results found</li>');
-                }
-            },
-            error: function () {
-                    $('#search-list').empty().append('<li class="list-group-item text-white">No results found</li>');
-            }
-        });
-    }
-
-    function fetchMyFriend(keyword,order){
-        $('#friends').removeClass('d-none');
-        $('#invitations').addClass('d-none');
-        var path = "/api/Friend/get-my-friends";
-
-
-        if( keyword && order){
-            path = `/api/Friend/get-my-friends/?$filter=contains(FullName,'${keyword}')&$orderby=FullName ${order}`;
-        }else if(keyword){
-			path = `/api/Friend/get-my-friends/?$filter=contains(FullName,'${keyword}')`;
-        }else if(order){
-            path =  `/api/Friend/get-my-friends/?$orderby=FullName ${order}`;
-        }else{
-            path = `/api/Friend/get-my-friends/?$orderby=FullName desc`;
+    <script>
+        function updateContentName(item) {
+            const iconHtml = item.find('i').prop('outerHTML');
+            const titleText = item.find('strong').text();
+            $('#content-name').html(`${iconHtml} ${titleText}`);
         }
 
-        $.ajax({
-            url: API_URL + path,
-            type: 'GET',
-            contentType: 'application/json',
-            success : function(result){
-                var friends = $('#friends-list');
-                friends.empty();
-                if(result.length > 0){
-                    result.forEach(function (item, index) {
-                        var friend = $(`
-                        <div class="friend-bar list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center p-3 border-bottom">
-                            <img src="${item.avatar}" width="40" class="avatar" alt="">
-                            <div class="d-flex w-100 justify-content-between align-items-center position-relative">
-                                <strong class="fs-5">${item.fullName}</strong>
-                                <div class="dropdown">
-                                    <button type="button" class="btn btn-sm btn-floating shadow-0" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-three-dots fs-5"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li class="dropdown-item" onclick="viewFriendDetail('${item.userId}')">View Profile</li>
-                                        <li class="dropdown-item" onclick="openChat('${item.userId}')">Send Message</li>
-                                        <li class="dropdown-item text-danger" onclick="removeFriend('${item.userId}')">Remove Friend</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>`
-                        );
+        $(function () {
+            $('#contactList').on('click', '.contact-item', function (e) {
+                e.preventDefault();
+                $('.contact-item').removeClass('active');
+                $(this).addClass('active');
+                updateContentName($(this));
+            });
+            const firstItem = $('#contactList .contact-item').first();
+            updateContentName(firstItem);
 
-                        friends.append(friend);
-                    });
-                }else{
-                     friends.append('<div class="list-group-item text-white">No friends found</li>');
+            fetchMyFriend('','asc');
+
+            $('#search-user').on('input', debounce(function (e) {
+                var keyword = $(this).val();
+                if (keyword.length >= 3) {
+
+                    $('#search-list').removeClass('d-none');
+                    handleSearch(keyword);
+                } else {
+                    $('#search-list').addClass('d-none');
+                    $('#search-list').empty();
                 }
-            },
-            error: function (error){
-                console.error("Error fetching my friend", error);
-            }
-        });
-    }
+            }, 400)); 
 
-    function fetchInvitations(){
-        $('#friends').addClass('d-none');
-	    $('#invitations').removeClass('d-none');
-        $.ajax({
-                url: API_URL + `/api/Friend/get-requests-to-me`,
-            type: 'GET',
-            contentType: 'application/json',
-            success : function(result){
-                var invitations = $('#invitation-list');
-                var count = $('#invitation-count');
-                invitations.empty();
-                if(result.success){
-                    var data = result.data;
-                    console.log(result);
-                    count.text(`(${data.length})`);
-                    data.forEach(function (item, index) {
-                        console.log(item);
-                        var friend = $(`
-                                <div class="card">
-                                    <div class="card-body d-flex gap-2 align-items-center p-3" onclick="viewFriendDetail('${item.user.userId}')" style="cursor: pointer;">
-                                        <img src="${item.user.avatar}" width="30" class="avatar" alt="">
-                                        <div class=" ">
-                                            <strong>${item.user.fullName}</strong>
-                                            <div>
-                                                <span class="text-muted">
-                                                    ${timeToNow(item.updateAt)}
-                                                </span>
+            $('#search-friends').on('input', debounce(function (e) {
+                var keyword = $(this).val();
+                var order = $('#sort-name').val();
+                fetchMyFriend(keyword,order);
+            }, 300));
+
+            $('#sort-name').on('change', function (e) {
+			    var keyword = $('#search-friends').val();
+			    var order = $(this).val();
+			    fetchMyFriend(keyword,order);
+		    });
+
+         });
+
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+
+
+        function handleSearch(keyword){
+            $.ajax({
+                url: API_URL + `/api/User/get-all/?$filter=contains(tolower(Email), tolower('${keyword}')) or contains(tolower(FullName), tolower('${keyword}'))&$top=10`,
+                type: 'GET',
+                contentType: 'application/json',
+                success: function (result) {
+                    var list = $('#search-list');
+                    list.empty();
+                    if (result.length > 0) {
+                        result.forEach(function (item) {
+                            var li = $(`
+                                 <li class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center friend-bar" onclick="viewFriendDetail('${item.userId}') ">
+                                    <img src="${item.avatar}" width="40" class="avatar" alt="">
+                                    <strong>${item.fullName}</strong>
+                                </li>
+                            `);
+                            list.append(li);
+                        });
+                    } else {
+                        list.append('<li class="list-group-item text-white">No results found</li>');
+                    }
+                },
+                error: function () {
+                        $('#search-list').empty().append('<li class="list-group-item text-white">No results found</li>');
+                }
+            });
+        }
+
+        function fetchMyFriend(keyword,order){
+            $('#friends').removeClass('d-none');
+            $('#invitations').addClass('d-none');
+            var path = "/api/Friend/get-my-friends";
+
+
+            if (keyword && order) {
+                path = `/api/Friend/get-my-friends/?$filter=contains(tolower(FullName), '${encodeURIComponent(keyword.toLowerCase())}')&$orderby=FullName ${order}`;
+            } else if (keyword) {
+                path = `/api/Friend/get-my-friends/?$filter=contains(tolower(FullName), '${encodeURIComponent(keyword.toLowerCase())}')`;
+            } else if (order) {
+                path = `/api/Friend/get-my-friends/?$orderby=FullName ${order}`;
+            } else {
+                path = `/api/Friend/get-my-friends/?$orderby=FullName desc`;
+            }
+
+            $.ajax({
+                url: API_URL + path,
+                type: 'GET',
+                contentType: 'application/json',
+                success : function(result){
+                    var friends = $('#friends-list');
+                    friends.empty();
+                    if(result.length > 0){
+                        result.forEach(function (item, index) {
+                            var friend = $(`
+                            <div class="friend-bar list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center p-3 border-bottom">
+                                <img src="${item.avatar}" width="40" class="avatar" alt="">
+                                <div class="d-flex w-100 justify-content-between align-items-center position-relative">
+                                    <strong class="fs-5">${item.fullName}</strong>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-sm btn-floating shadow-0" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots fs-5"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li class="dropdown-item" onclick="viewFriendDetail('${item.userId}')">View Profile</li>
+                                            <li class="dropdown-item" onclick="openChat('${item.userId}')">Send Message</li>
+                                            <li class="dropdown-item text-danger" onclick="removeFriend('${item.userId}','Do you want to remove this friend?',1)">Remove Friend</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>`
+                            );
+
+                            friends.append(friend);
+                        });
+                    }else{
+                         friends.append('<div class="list-group-item text-white">No friends found</li>');
+                    }
+                    var contentName = $('#content-name');
+                    var originalContent = contentName.html().replace(/\s*\(\d+\)$/, '').trim();
+                    contentName.html(originalContent + ` (${result.length})`);
+                },
+                error: function (error){
+                    console.error("Error fetching my friend", error);
+                }
+            });
+        }
+
+        function fetchInvitations(){
+            $('#friends').addClass('d-none');
+	        $('#invitations').removeClass('d-none');
+            $.ajax({
+                    url: API_URL + `/api/Friend/get-requests-to-me`,
+                type: 'GET',
+                contentType: 'application/json',
+                success : function(result){
+                    var invitations = $('#invitation-list');
+                    var count = $('#invitation-count');
+                    invitations.empty();
+                    if(result.success){
+                        var data = result.data;
+                        console.log(result);
+                        count.text(`(${data.length})`);
+                        data.forEach(function (item, index) {
+                            console.log(item);
+                            var friend = $(`
+                                    <div class="card">
+                                        <div class="card-body d-flex gap-2 align-items-center p-3" onclick="viewFriendDetail('${item.user.userId}')" style="cursor: pointer;">
+                                            <img src="${item.user.avatar}" width="30" class="avatar" alt="">
+                                            <div class=" ">
+                                                <strong>${item.user.fullName}</strong>
+                                                <div>
+                                                    <span class="text-muted">
+                                                        ${timeToNow(item.updateAt)}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
+                                        <div class="card-footer d-flex gap-2">
+                                            <div class="w-50">
+                                                <button type="button" class="btn btn-sm btn-danger shadow-0 w-100" onclick="removeFriend('${item.user.userId}','Do you want to accept this invitation?',2) ">
+                                                    Reject
+                                                </button>
+                                            </div>
+                                            <div class="w-50">
+                                                <button type="button" class="btn btn-sm btn-success shadow-0 w-100" onclick="acceptInvitation('${item.user.userId}',1) ">
+                                                    Accept
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>`
+                                );
+
+                                invitations.append(friend);
+                        });
+                    }else{
+                        console.error(result.message);
+                    }
+                },
+                error: function (error){
+                    console.error("Error fetching my friend", error);
+                }
+            });
+            $.ajax({
+                url: API_URL + `/api/Friend/get-my-requests`,
+                type: 'GET',
+                contentType: 'application/json',
+                success : function(result){
+                    var myRequests = $('#my-request-list');
+                    var count = $('#my-invitations-count');
+                    myRequests.empty();
+                    if(result.success){
+                        var data = result.data;
+                        count.text(`(${data.length})`);
+                        data.forEach(function (item, index) {
+                            var friend = $(`
+                                <div class="card">
+                                    <div class="card-body d-flex gap-2 align-items-center p-3" onclick="viewFriendDetail('${item.friend.userId}')" style="cursor: pointer;">
+                                    <img src="${item.friend.avatar}" width="30" class="avatar" alt="">
+                                    <div class=" ">
+                                        <strong >${item.friend.fullName}</strong>
+                                        <div>
+                                            <span class="text-muted">
+                                                ${timeToNow(item.updateAt)}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div class="card-footer d-flex gap-2">
+                                </div>
+                                <div class="card-footer">
+                                    <button type="button" class="btn btn-sm btn-secondary shadow-0 w-100" onclick="removeFriend('${item.friend.userId}','Do you want revoke invitation ?',2)">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>`
+                            );
+
+                            myRequests.append(friend);
+                        });
+                    }else{
+                        console.error(result.message);
+                    }
+                },
+                error: function (error){
+                    console.error("Error fetching my friend", error);
+                }
+            });
+         }
+
+        function timeToNow(time) {
+                if(time == null) return "";
+                var inputDate = new Date(time);
+                var now = new Date();
+                var diffMs = now - inputDate;
+                var diffSec = Math.floor(diffMs / 1000);
+                var diffMin = Math.floor(diffSec / 60);
+                var diffHour = Math.floor(diffMin / 60);
+                var diffDay = Math.floor(diffHour / 24);
+                var diffMonth = Math.floor(diffDay / 30);
+
+                if(diffMonth >= 1){
+                    return `${diffMonth} tháng trước`;
+                } else if (diffDay >= 1) {
+                    return `${diffDay} ngày trước`;
+                } else if (diffHour >= 1) {
+                    return `${diffHour} giờ trước`;
+                } else if (diffMin >= 1) {
+                    return `${diffMin} phút trước`;
+                } else {
+                    return `Vừa xong`;
+                }
+            }
+
+        function viewFriendDetail(id){
+            $.ajax({
+                url: API_URL + `/api/User/get-user/${id}`,
+                type: 'GET',
+                contentType: 'application/json',
+                success : function(result){
+                    console.log(result);
+				    if(result.success){
+					    var data = result.data;
+                        var content = $("#friendDetailContent");
+					    content.empty();
+                        console.log(data);
+
+                        var btn = `<button type="button" class="btn btn-sm btn-info shadow-0 w-100" onclick="sendInvitation('${data.userId}') ">
+                                        Send Invitation
+                                    </button>`
+                        if(data.friendStatus == "friend"){
+                            btn = `<button type="button" class="btn btn-sm btn-secondary shadow-0 w-100" >
+                                        Send Message
+                                    </button>`
+                        }else if(data.friendStatus  == "myrequest"){
+                            btn = `<button type="button" class="btn btn-sm btn-secondary shadow-0 w-100" onclick="removeFriend('${data.userId}', 'Do you want revoke invitation ?',3) ">
+                                        Cancel
+                                    </button>`
+                            }else if(data.friendStatus == "requestme"){
+                            btn = `<div class=" d-flex gap-2">
                                         <div class="w-50">
-                                            <button type="button" class="btn btn-sm btn-danger shadow-0 w-100">
+                                            <button type="button" class="btn btn-sm btn-danger shadow-0 w-100" onclick="removeFriend('${data.userId}','Do you want to accept this invitation?',3) ">
                                                 Reject
                                             </button>
                                         </div>
                                         <div class="w-50">
-                                            <button type="button" class="btn btn-sm btn-success shadow-0 w-100">
+                                            <button type="button" class="btn btn-sm btn-success shadow-0 w-100" onclick="acceptInvitation('${data.userId}',3)">
                                                 Accept
                                             </button>
                                         </div>
-                                    </div>
-                                </div>`
-                            );
+                                    </div>`
+                        }
 
-                            invitations.append(friend);
-                    });
-                }else{
-                    console.error(result.message);
-                }
-            },
-            error: function (error){
-                console.error("Error fetching my friend", error);
-            }
-        });
-        $.ajax({
-            url: API_URL + `/api/Friend/get-my-requests`,
-            type: 'GET',
-            contentType: 'application/json',
-            success : function(result){
-                var myRequests = $('#my-request-list');
-                var count = $('#my-invitations-count');
-                myRequests.empty();
-                if(result.success){
-                    var data = result.data;
-                    count.text(`(${data.length})`);
-                    data.forEach(function (item, index) {
-                        var friend = $(`
-                            <div class="card">
-                                <div class="card-body d-flex gap-2 align-items-center p-3" onclick="viewFriendDetail('${item.friend.userId}')" style="cursor: pointer;">
-                                <img src="${item.friend.avatar}" width="30" class="avatar" alt="">
-                                <div class=" ">
-                                    <strong >${item.friend.fullName}</strong>
-                                    <div>
-                                        <span class="text-muted">
-                                            ${timeToNow(item.updateAt)}
-                                        </span>
-                                    </div>
+				        var user = $(`
+                            <div class="d-flex gap-2 align-items-center p-3">
+                                    <img src="${data.avatar}" width="60" class="avatar-lg " alt="">
+                                <div class="fs-5">
+                                    <strong>${data.fullName}</strong>
                                 </div>
                             </div>
-                            <div class="card-footer">
-                                <button type="button" class="btn btn-sm btn-secondary shadow-0 w-100">
-                                    Cancel
-                                </button>
+                            ${btn}
+                            <hr>
+                            <!-- Thông tin cá nhân -->
+                            <div class="text-start px-3">
+                                <h6 class="fw-semibold fs-5 ">Infomation</h6>
+                                <div class="mb-2 "><strong>Gender:</strong> ${(data.gender == null) ? "None" : (data.gender ? "Male" : "Female")}  </div>
+                                <div class="mb-2 "><strong>Birth:</strong> ${ data.birth? data.birth : "None" } </div>
+                                <div class="mb-2 "><strong>Phone:</strong> ${ data.phone? data.phone : "None" } </div>
+                                <div class="mb-3 "><strong>Email:</strong> ${ data.email? data.email : "None" } </div>
+                                <hr>
                             </div>
-                        </div>`
-                        );
+                        `);
 
-                        myRequests.append(friend);
-                    });
-                }else{
-                    console.error(result.message);
+                        content.append(user);
+
+                        $("#friendDetailModal").modal("show");
+                    }
+                },
+                error: function (error){
+                    console.error("Error fetching my friend", error);
                 }
-            },
-            error: function (error){
-                console.error("Error fetching my friend", error);
-            }
-        });
-     }
-
-    function timeToNow(time) {
-            if(time == null) return "";
-            var inputDate = new Date(time);
-            var now = new Date();
-            var diffMs = now - inputDate;
-            var diffSec = Math.floor(diffMs / 1000);
-            var diffMin = Math.floor(diffSec / 60);
-            var diffHour = Math.floor(diffMin / 60);
-            var diffDay = Math.floor(diffHour / 24);
-            var diffMonth = Math.floor(diffDay / 30);
-
-            if(diffMonth >= 1){
-                return `${diffMonth} tháng trước`;
-            } else if (diffDay >= 1) {
-                return `${diffDay} ngày trước`;
-            } else if (diffHour >= 1) {
-                return `${diffHour} giờ trước`;
-            } else if (diffMin >= 1) {
-                return `${diffMin} phút trước`;
-            } else {
-                return `Vừa xong`;
-            }
+            });
         }
 
-    function viewFriendDetail(id){
-       
-        $.ajax({
-            url: API_URL + `/api/User/get-user/${id}`,
-            type: 'GET',
-            contentType: 'application/json',
-            success : function(result){
-                console.log(result);
-				if(result.success){
-					var data = result.data;
-                    var content = $("#friendDetailContent");
-					content.empty();
-                    console.log(data);
+        function removeFriend(id,message,tab){
+            console.log(id);
+            // $('#confirmDeleteModal').modal('show');
+            $("#friendDetailModal").modal("hide");
+            const swalWithBootstrapButtons = Swal.mixin({
+              customClass: {
+                confirmButton: "btn btn-danger m-2",
+				cancelButton: "btn btn-secondary m-2"
+              },
+              buttonsStyling: false
+            });
+            swalWithBootstrapButtons.fire({
+              title: message,
+              showCancelButton: true,
+              confirmButtonText: "Yes!",
+              cancelButtonText: "Cancel!",
+              reverseButtons: true
+            }).then((result) => {
+              if (result.isConfirmed) {
+                  removeFriendHandler(id,tab);
+              } 
+            });
+        }
 
-                    var btn = `<button type="button" class="btn btn-sm btn-info shadow-0 w-100">
-                                    Send Invitation
-                                </button>`
-
-                    if(data.friendStatus == "friend"){
-                        btn = `<button type="button" class="btn btn-sm btn-secondary shadow-0 w-100">
-                                    Send Message
-                                </button>`
-                    }else if(data.friendStatus  == "myrequest"){
-                        btn = `<button type="button" class="btn btn-sm btn-secondary shadow-0 w-100">
-                                    Cancel
-                                </button>`
-                        }else if(data.friendStatus == "requestme"){
-                        btn = `<div class=" d-flex gap-2">
-                                    <div class="w-50">
-                                        <button type="button" class="btn btn-sm btn-danger shadow-0 w-100">
-                                            Reject
-                                        </button>
-                                    </div>
-                                    <div class="w-50">
-                                        <button type="button" class="btn btn-sm btn-success shadow-0 w-100">
-                                            Accept
-                                        </button>
-                                    </div>
-                                </div>`
+        function sendInvitation(friendId){
+            $.ajax({
+                url: API_URL + "/api/Friend/add",
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(friendId),
+                success: function (result) {
+                    if(result.success){
+                        viewFriendDetail(friendId);
+                         fetchInvitations();
+                    }else{
+				        console.error(result.message);
                     }
-
-				    var user = $(`
-                        <div class="d-flex gap-2 align-items-center p-3">
-                                <img src="${data.avatar}" width="60" class="avatar-lg " alt="">
-                            <div class="fs-5">
-                                <strong>${data.fullName}</strong>
-                            </div>
-                        </div>
-                        ${btn}
-                        <hr>
-                        <!-- Thông tin cá nhân -->
-                        <div class="text-start px-3">
-                            <h6 class="fw-semibold fs-5 ">Infomation</h6>
-                            <div class="mb-2 "><strong>Gender:</strong> ${(data.gender == null) ? "None" : (data.gender ? "Male" : "Female")}  </div>
-                            <div class="mb-2 "><strong>Birth:</strong> ${ data.birth? data.birth : "None" } </div>
-                            <div class="mb-2 "><strong>Phone:</strong> ${ data.phone? data.phone : "None" } </div>
-                            <div class="mb-3 "><strong>Email:</strong> ${ data.email? data.email : "None" } </div>
-                            <hr>
-                        </div>
-                    `);
-
-                    content.append(user);
-
-                    $("#friendDetailModal").modal("show");
+                },
+                error: function (error) {
+                    console.error("Error invitation", error);
                 }
-            },
-            error: function (error){
-                console.error("Error fetching my friend", error);
-            }
-        });
-    }
+            });
+        }
 
-    function removeFriend(id){
-        $('#confirmDeleteModal').modal('show');
-    }
-</script>
+        function acceptInvitation(friendId,tab) {
+            $.ajax({
+                url: API_URL + '/api/Friend/accept',
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(friendId),
+                success: function (result) {
+                    if (result.success) {
+                        fetchMyFriend();
+                       if(tab == 3){
+                            viewFriendDetail(friendId);
+                        }
+                    } else {
+                        console.error('Failed to accept friend request:', result.message);
+                    }
+                },
+                error: function (error) {
+                    console.error('Error accepting friend request:', error);
+           
+                }
+            });
+        }
+
+        function removeFriendHandler(friendId,tab) {
+            $.ajax({
+                url: API_URL + '/api/Friend/remove',
+                type: 'DELETE',
+                contentType: 'application/json',
+                data: JSON.stringify(friendId),
+                success: function (result) {
+                    if (result.success) {
+                        if(tab == 1){
+                            fetchMyFriend();
+                        }else if(tab == 2){
+                            fetchInvitations();
+                        }else if(tab == 3){
+                            viewFriendDetail(friendId);
+                            fetchInvitations();
+                        }
+                    } else {
+                        console.error('Failed to remove friend:', result.message);
+                    }
+                },
+                error: function (error) {
+                    console.error('Error removing friend:', error);
+                }
+            });
+        }
+    </script>
 }

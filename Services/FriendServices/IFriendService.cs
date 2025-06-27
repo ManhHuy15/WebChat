@@ -16,5 +16,11 @@ namespace Services.FriendServices
         Task<ResponseDTO<List<FriendDTO>>> getMyRequests(int userId);
 
         Task<ResponseDTO<List<FriendDTO>>> getRequestsToMe(int userId);
+
+        Task<ResponseDTO<bool>> RemoveFriend(RemoveFriendDTO friendDTO);
+
+        Task<ResponseDTO<bool>> AddFriend(FriendAddUpdateDTO newFriend);
+
+        Task<ResponseDTO<bool>> AcceptFriend(FriendAddUpdateDTO newFriend);
     }
 }
