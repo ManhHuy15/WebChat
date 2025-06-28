@@ -683,10 +683,11 @@
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(friendId),
-                success: function (result) {
+                success: async function (result) {
                     if(result.success){
                         viewFriendDetail(friendId);
                          fetchInvitations();
+                         await connection.invoke('Notification',friendId, "send to you a invitation");
                     }else{
 				        console.error(result.message);
                     }
@@ -703,12 +704,13 @@
                 type: 'PUT',
                 contentType: 'application/json',
                 data: JSON.stringify(friendId),
-                success: function (result) {
+                success: async function (result) {
                     if (result.success) {
                         fetchMyFriend();
                        if(tab == 3){
                             viewFriendDetail(friendId);
                         }
+                        await connection.invoke('Notification',friendId, "accepted your invitation");
                     } else {
                         console.error('Failed to accept friend request:', result.message);
                     }

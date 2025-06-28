@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Services.UserServices;
+using System.Security.Claims;
 
 namespace ApiServices.Controllers
 {
@@ -37,7 +38,8 @@ namespace ApiServices.Controllers
         {
             try
             {
-                var result = await _userService.GetUserById(id);
+                var myId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var result = await _userService.GetUserById(id, int.Parse(myId));
                 return Ok(result);
             }
             catch (Exception ex)

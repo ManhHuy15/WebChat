@@ -14,7 +14,7 @@ namespace Services.UserServices
     {
         Task<List<UserBaseDTO>> AllUser();
 
-        Task<ResponseDTO<UserDetailDTO>> GetUserById(int id);
+        Task<ResponseDTO<UserDetailDTO>> GetUserById(int userId,int myId);
 
     }
 }

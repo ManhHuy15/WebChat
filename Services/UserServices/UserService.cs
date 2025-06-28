@@ -36,9 +36,9 @@ namespace Services.UserServices
             return result;
         }
 
-        public async Task<ResponseDTO<UserDetailDTO>> GetUserById(int id)
+        public async Task<ResponseDTO<UserDetailDTO>> GetUserById(int userId, int myId)
         {
-            var user = await _userRepository.GetUser(u => u.UserId == id);
+            var user = await _userRepository.GetUser(u => u.UserId == userId);
             if (user == null)
             {
                 return new ResponseDTO<UserDetailDTO>()
@@ -51,9 +51,9 @@ namespace Services.UserServices
             }
             var status = "none";
 
-            var isFriend = user.ReceiverFriendShips.FirstOrDefault(x => x.FriendId == id && x.Status == (int) Enums.FriendShipStatus.Accepted);
-            var myRequest = user.ReceiverFriendShips.FirstOrDefault(x => x.FriendId == id && x.Status == (int)Enums.FriendShipStatus.Pending);
-            var requestMe = user.SenderFriendShips.FirstOrDefault(x => x.UserId == id && x.Status == (int) Enums.FriendShipStatus.Pending);
+            var isFriend = user.ReceiverFriendShips.FirstOrDefault(x => x.FriendId == userId && x.UserId == myId && x.Status == (int) Enums.FriendShipStatus.Accepted);
+            var myRequest = user.ReceiverFriendShips.FirstOrDefault(x => x.FriendId == userId && x.UserId == myId && x.Status == (int)Enums.FriendShipStatus.Pending);
+            var requestMe = user.SenderFriendShips.FirstOrDefault(x => x.UserId == userId  && x.FriendId == myId && x.Status == (int) Enums.FriendShipStatus.Pending);
 
             if (isFriend != null)
             {

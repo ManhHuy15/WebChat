@@ -26,6 +26,11 @@ $(function () {
                 fetchMessageInGroup(groupId);
             }
         });
+
+        connection.on("ReceiveNotification", function (message) {
+            showNotification(message);
+        });
+
         connection.start()
         .then(() => {
             console.log("SignalR Successfully Connected")
