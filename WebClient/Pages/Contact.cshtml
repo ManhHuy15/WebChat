@@ -111,6 +111,7 @@
         overflow-y: auto;
     }
 </style>
+<link rel="stylesheet" href="~/css/chatting.css" asp-append-version="true" />
 
 <div class="d-flex h-100 py-3">
     <div class="contact-sidebar d-flex flex-column">
@@ -264,6 +265,39 @@
             </div>
         </div>  
     </div>
+
+    <div id="chat-content" class="chat-content text-white  d-flex flex-column d-none">
+        <div class="chat-header d-flex justify-content-between align-items-center">
+            <div class="d-flex gap-2">
+                <img id="chat-avatar" src="https://scontent.fhan15-1.fna.fbcdn.net/v/t39.30808-6/482019444_122183994404333369_5508670626021919815_n.png?stp=dst-jpg_tt6&_nc_cat=109&ccb=1-7&_nc_sid=2285d6&_nc_ohc=6Wm8HoVrr7YQ7kNvwHAcI2-&_nc_oc=AdndOHVw3uGmQPQe8GJR0VlBYXB-B8Oz49gzWSTKb3zb61Bwfnc_SYEQSf3NtGfGGwk&_nc_zt=23&_nc_ht=scontent.fhan15-1.fna&_nc_gid=_7k3Dmuxuu1TZTW0kieKqA&oh=00_AfNPJihpfAgRqDEA3_3Jiem3JZtvAvVgBiPrCg1OCXWSVQ&oe=6854629C" class="avatar" alt="">
+                <div>
+                    <h6 class="mb-0" id="chat-name">Cloud của tôi</h6>
+                    <small class="text-muted">Lưu và đồng bộ dữ liệu giữa các thiết bị</small>
+                    <input type="hidden" id="chat-id" />
+                    <input type="hidden" id="chat-type" />
+                </div>
+            </div>
+        </div>
+
+        <div id="chat-messages" class="chat-messages d-flex flex-column">
+            <div id="loading-spinner" class="text-center my-2" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-footer">
+            <div id="preview-wrapper" class="mb-2 d-flex gap-2 flex-wrap"></div>
+
+            <div class="d-flex align-items-center gap-2">
+                <input type="file" id="file-input" multiple class="d-none" accept="image/*,video/*,.pdf,.doc,.docx,.txt">
+                <i class="bi bi-paperclip fs-5 text-primary" role="button" id="btn-select-file"></i>
+                <input type="text" class="form-control" id="chat-input" placeholder="Nhập tin nhắn tới Cloud của tôi">
+                <i class="fas fa-paper-plane fs-5 text-primary" id="btn-send" role="button"></i>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="modal fade" id="friendDetailModal" tabindex="-1" aria-labelledby="friendDetailLabel" aria-hidden="true">
@@ -318,6 +352,7 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/chatting.js" asp-append-version="true"></script>
     <script>
         function updateContentName(item) {
             const iconHtml = item.find('i').prop('outerHTML');
@@ -328,6 +363,8 @@
         $(function () {
             $('#contactList').on('click', '.contact-item', function (e) {
                 e.preventDefault();
+                $('#contact-content').removeClass('d-none');
+                $('#chat-content').addClass('d-none');
                 $('.contact-item').removeClass('active');
                 $(this).addClass('active');
                 updateContentName($(this));
@@ -370,7 +407,6 @@
                 timeout = setTimeout(() => func.apply(this, args), delay);
             };
         }
-
 
         function handleSearch(keyword){
             $.ajax({
@@ -436,7 +472,7 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li class="dropdown-item" onclick="viewFriendDetail('${item.userId}')">View Profile</li>
-                                            <li class="dropdown-item" onclick="openChat('${item.userId}')">Send Message</li>
+                                            <li class="dropdown-item" onclick="openChatInContact('${item.userId}','${item.fullName}','${item.avatar}',0)">Send Message</li>
                                             <li class="dropdown-item text-danger" onclick="removeFriend('${item.userId}','Do you want to remove this friend?',1)">Remove Friend</li>
                                         </ul>
                                     </div>
@@ -600,7 +636,8 @@
                                         Send Invitation
                                     </button>`
                         if(data.friendStatus == "friend"){
-                            btn = `<button type="button" class="btn btn-sm btn-secondary shadow-0 w-100" >
+                            btn = `<button type="button" class="btn btn-sm btn-secondary shadow-0 w-100"
+                                    onclick="openChatInContact('${data.userId}','${data.fullName}','${data.avatar}',0)">
                                         Send Message
                                     </button>`
                         }else if(data.friendStatus  == "myrequest"){
@@ -746,6 +783,13 @@
                     console.error('Error removing friend:', error);
                 }
             });
+        }
+
+        function openChatInContact(userId, name, avatar, type) {
+            $('#contact-content').addClass('d-none');
+            $('#chat-content').removeClass('d-none');
+            $("#friendDetailModal").modal("hide");
+            openChat(userId, name, avatar, type);
         }
     </script>
 }
