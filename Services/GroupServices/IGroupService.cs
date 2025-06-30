@@ -10,6 +10,9 @@ namespace Services.GroupServices
 {
     public interface IGroupService
     {
-        Task<ResponseDTO<List<GroupBaseDTO>>> getMyGroups(int userId);
+        Task<List<GroupBaseDTO>> getMyGroups(int userId);
+        Task<ResponseDTO<GroupInfoDTO>> getDetails(int groupId);
+        Task<ResponseDTO<bool>> RemoveMemberFromGroup(int userId, int groupId);
+        Task<ResponseDTO<bool>> CreateGroup(GroupCreateDTO newGroup);
     }
 }

@@ -58,6 +58,27 @@
             left: 70%;
             bottom: 40%;
         }
+
+         .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .avatar-sm {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .avatar-lg {
+		width: 60px;
+		height: 60px;
+		border-radius: 50%;
+		object-fit: cover;
+	}
     </style>
 </head>
 <body class="d-flex mb-0 mh-100 bg-primary-dark">
@@ -66,7 +87,6 @@
             <img src="https://res.cloudinary.com/ddg2gdfee/image/upload/v1750643519/default_avata_dry3fp.png" alt="Avatar" class="profile-img">
         </div>
 
-        <!-- Menu Icons -->
         <nav class="nav flex-column text-center mt-4 w-100 h-100">
             <!-- Chat Icon with Badge -->
             <div class="position-relative">
@@ -88,9 +108,10 @@
             </div>
 
             <div class="flex-grow-1"></div>
-            <!-- Bottom: Settings + Collapse -->
-            <div class="mb-3">
+            <!-- Bottom: Settings + Logout  -->
+            <div class="mb-4">
                 <a class="nav-link" href="#"><i class="bi bi-gear-fill fs-4"></i></a>
+                <a class="nav-link" href="#"><i class="bi bi-box-arrow-in-left fs-4"></i></a>
             </div>
         </nav>
     </div>
@@ -98,6 +119,51 @@
         @RenderBody()
     </div>
     <div id="snackbar" class="position-absolute bottom-0 start-0 overflow-hidden p-3" style="z-index: 9999; width: 18rem">
+    </div>
+
+    <div class="modal fade" id="createGroupModal" tabindex="-1" aria-labelledby="createGroupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered custom-modal h-75">
+            <div class="modal-content h-75">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createGroupModalLabel">Tạo nhóm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="mb-4 d-flex align-items-center gap-2">
+                            <div class="position-relative" id="group-preview-avatar">
+                                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAEklEQVR42mP8z8BQDwAEegG2iZqTcQAAAABJRU5ErkJggg=="
+                                    class="avatar-lg border">
+                                <i class="bi bi-camera-fill position-absolute bottom-0 end-0 text-center avatar-sm border bg-white" ></i>
+                            </div>
+                            <input type="file" id="group-avatar" class="form-control d-none" accept="image/*">
+                            <div class="w-100 position-relative">
+                                <input type="text" id="group-name" class="form-control" placeholder="Group name">
+                                <span class="text-danger fs-6 position-absolute" id="group-name-error"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <input type="checkbox" class="form-check-input" id="isPrivate">
+                            <span class="ms-2">Private</span>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="search-contact" placeholder="Search friends">
+                        </div>
+                        <div class="list-group" id="contact-list">
+                    </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        Selected <span id="selected-contact-count">0</span>/<span id="max-contact"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="btn-group mt-3" role="group">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-primary" onclick="createGroup()">Create</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -113,6 +179,160 @@
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.22.1/dist/sweetalert2.min.css" rel="stylesheet">
     <script>
         const API_URL = "@apiBaseUrl";
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+        var selectedContactIds = [];
+        $(function() {
+
+            $("#createGroupPopup").click(function() {
+                getContactList("");
+                selectedContactIds = [];
+                $("#createGroupModal").modal("show");
+            });
+
+            $('#search-contact').on('input', debounce(function (e) {
+                var keyword = $(this).val();
+                getContactList(keyword);
+            }, 300));
+
+            $("#contactList .list-group-item input").change(function() {
+                const selectedCount = $("#contactList .list-group-item input:checked").length;
+                $("#selected-contact-count").text(`${selectedCount}`);
+                $(this).parent().toggleClass("selected", this.checked);
+            });
+
+            $("#group-preview-avatar").on("click", function (e) {
+                e.preventDefault();
+                $("#group-avatar").click();
+            });
+
+            $("#group-avatar").on("change", function () {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                          $("#group-preview-avatar img").attr("src", e.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            function getContactList(keyword) {
+                var path = "/api/Friend/get-my-friends";
+                if (keyword) {
+                    path = `/api/Friend/get-my-friends/?$filter=contains(tolower(FullName), '${encodeURIComponent(keyword.toLowerCase())}')&$orderby=FullName desc`;
+                } else {
+                    path = `/api/Friend/get-my-friends/?$orderby=FullName desc`;
+                }
+
+                $.ajax({
+                    url: API_URL + path,
+                    type: 'GET',
+                    contentType: 'application/json',
+                    success : function(result){
+                        var friends = $('#contact-list');
+                        friends.empty();
+                        if(result.length > 0){
+                            result.forEach(function (item, index) {
+                                const isChecked = selectedContactIds.includes(item.userId) ? 'checked' : '';
+                                var friend = $(`
+                                <div class="list-group-item d-flex align-items-center">
+                                    <input type="checkbox" class="form-check-input me-2"
+                                            onChange="handleCheck(this, ${item.userId})"
+                                            ${isChecked}>
+                                    <img src="${item.avatar}" alt="Avatar" class="avatar">
+                                    <span class="ms-2">${item.fullName}</span>
+                                </div>`
+                                );
+                                friends.append(friend);
+                            });
+                            $("#max-contact").text(result.length);
+                        }else{
+                            friends.append('<div class="list-group-item text-center">No friends found</li>');
+                            console.log("No friends found");
+                        }
+                    },
+                    error: function (error){
+                        console.error("Error fetching my friend", error);
+                    }
+                });
+            }
+        });
+        function handleCheck(checkboxElem,contactId){
+             const isChecked = checkboxElem.checked;
+
+            $(checkboxElem).closest(".list-group-item").toggleClass("selected", isChecked);
+
+            if (isChecked) {
+                if (!selectedContactIds.includes(contactId)) {
+                    selectedContactIds.push(contactId);
+                }
+            } else {
+                const index = selectedContactIds.indexOf(contactId);
+                if (index !== -1) {
+                    selectedContactIds.splice(index, 1);
+                }
+            }
+
+            $("#selected-contact-count").text(selectedContactIds.length);
+        }
+        
+        function createGroup() {
+            const groupName = $("#group-name").val().trim();
+            const avatarFile = $("#group-avatar")[0].files[0];
+            const isPrivate = $("#isPrivate").is(":checked");
+            if (!groupName) {
+                $("#group-name-error").text("Please enter group name.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("name", groupName);
+
+            selectedContactIds.forEach(id => {
+                formData.append("memberIds", id);
+            });
+
+            if (avatarFile) {
+                formData.append("avatar", avatarFile);
+            }
+
+			formData.append("isPrivate", isPrivate);
+            console.log(formData);
+            $.ajax({
+                url: API_URL + "/api/Group/create",
+                type: "POST",
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (result) {
+                    if (result.success) {
+                        resetGroupModal();
+                        $("#createGroupModal").modal("hide");
+                    }else{
+                        console.error("Error:", result.message);
+                    }
+                    
+                },
+                error: function (err) {
+                    console.error("Error:", err);
+                }
+            });
+        }
+
+        function resetGroupModal() {
+            $("#group-name").val('');
+            $("#group-avatar").val('');
+            $("#group-preview-avatar img").attr("src", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAEklEQVR42mP8z8BQDwAEegG2iZqTcQAAAABJRU5ErkJggg==");
+            $("#contact-list").empty();
+            $("#selected-contact-count").text("0");
+            selectedContactIds.length = 0;
+        }
     </script>
     @await RenderSectionAsync("Scripts", required: false)
     <script src="~/js/signalR-connection.js" asp-append-version="true"></script>

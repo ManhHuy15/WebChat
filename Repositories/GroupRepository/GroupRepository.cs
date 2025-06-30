@@ -17,8 +17,14 @@ namespace Repositories.GroupRepository
         {
             _groupDAO = groupDAO;
         }
+        public async Task<int> CreateGroup(Group group) => await _groupDAO.CreateGroup(group);
+
+        public async Task<Group> GetDetails(int id) => await _groupDAO.GetGroupDetails(id);
 
         public async Task<List<GroupMember>> GetMyGroupMember(int userId) => await _groupDAO.GetGroupMemberByCondition(gm => gm.UserId == userId).ToListAsync();
-        
+
+        public async Task<bool> RemoveMemberFromGroup(int userId, int groupId) => await _groupDAO.RemoveMember(userId, groupId);
+
+        public async Task<bool> AddMemberToGroup(List<GroupMember> groupMembers) => await _groupDAO.AddMember(groupMembers);
     }
 }

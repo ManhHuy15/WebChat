@@ -75,19 +75,7 @@
         background-color: rgba(255, 255, 255, 0.4);
     }
 
-    .avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    .avatar-lg {
-		width: 60px;
-		height: 60px;
-		border-radius: 50%;
-		object-fit: cover;
-	}
+   
 
     .m-h-12 {
         max-height: 12rem;
@@ -133,7 +121,7 @@
 
         <div class="list-group list-group-flush flex-grow-1 px-2" id="contactList">
             <a href="#" class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center contact-item active" onclick="fetchMyFriend()">
-                <i class="bi bi-people-fill fs-4"></i>
+                <i class="bi bi-person-check-fill fs-4"></i>
                 <div class="flex-grow-1">
                     <strong>Friends</strong>
                 </div>
@@ -142,6 +130,12 @@
                 <i class="bi bi-person-plus-fill fs-4"></i>
                 <div class="flex-grow-1">
                     <strong>Friend Invitation</strong>
+                </div>
+            </a>
+            <a href="#" class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center contact-item" onclick="fetchMyGroups()">
+                <i class="bi bi-people-fill fs-4"></i>
+                <div class="flex-grow-1">
+                    <strong>Group Message</strong>
                 </div>
             </a>
         </div>
@@ -263,6 +257,45 @@
                     </div>
                 </div>
             </div>
+            <div id="groups" class="d-none">
+                <div class="d-flex justify-content-between">
+                    <div class="input-group input-group-sm w-75">
+                        <span class="input-group-text border-0" id="search-addon-group"><i class="fas fa-search"></i></span>
+                        <input type="search"
+                               id="search-groups"
+                               class="form-control rounded"
+                               placeholder="Search groups"
+                               aria-label="Search"
+                               aria-describedby="search-addon-group" />
+                    </div>
+                    <div class="mx-3">
+                        <select id="sort-name-groups" class="form-select form-select-sm" aria-label="Default select example">
+                            <option value="asc" selected>(Name) A-Z</option>
+                            <option value="desc">(Name) Z-A</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="groups-list" class="mt-5">
+                    @*  <div class="friend-bar list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center p-3 border-bottom">
+                        <img src="${item.avatar}" width="40" class="avatar" alt="">
+                        <div class="d-flex w-100 justify-content-between ">
+                            <strong class="fs-5">${item.name}</strong>
+                            <button type="button" class="btn btn-sm btn-floating shadow-0 " >
+                                <i class="bi bi-three-dots fs-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="friend-bar list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center p-3 border-bottom">
+                        <img src="${item.avatar}" width="40" class="avatar" alt="">
+                        <div class="d-flex w-100 justify-content-between ">
+                            <strong class="fs-5">${item.name}</strong>
+                            <button type="button" class="btn btn-sm btn-floating shadow-0 ">
+                                <i class="bi bi-three-dots fs-5"></i>
+                            </button>
+                        </div>
+                    </div> *@
+                </div>
+            </div>
         </div>  
     </div>
 
@@ -308,24 +341,21 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
             <div class="modal-body" id="friendDetailContent">
-                <div class="d-flex gap-2 align-items-center p-3">
-                    <img src="${item.avatar}" width="60" class="avatar" alt="">
-                    <div class=" ">
-                        <strong>${item.name}</strong>
-                    </div>
-                </div>
-                <button type="button" class="btn btn-sm btn-secondary shadow-0 w-100">
-					Send Message
-                </button>
-                <hr>
-                <!-- Thông tin cá nhân -->
-                <div class="text-start px-3">
-                    <h6 class="fw-semibold ">Infomation</h6>
-                    <div class="mb-2 "><strong>Giới tính:</strong> Nam</div>
-                    <div class="mb-2"><strong>Ngày sinh:</strong> 08 tháng 10, 2004</div>
-                    <div class="mb-3"><strong>Điện thoại:</strong> ●●●●●●●●</div>
-                    <hr>
-                </div>
+               
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="groupDetailModal" tabindex="-1" aria-labelledby="groupDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content text-white w-75" style="background-color: #363636">
+            <div class="modal-header">
+                <h5 class="modal-title" id="groupDetailLabel">Group infomation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body" id="groupDetailContent">
+               
             </div>
         </div>
     </div>
@@ -398,15 +428,19 @@
 			    fetchMyFriend(keyword,order);
 		    });
 
-         });
+            $('#search-groups').on('input', debounce(function (e) {
+                var keyword = $(this).val();
+                var order = $('#sort-name-groups').val();
+                fetchMyGroups(keyword,order);
+            }, 300));
 
-        function debounce(func, delay) {
-            let timeout;
-            return function(...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(this, args), delay);
-            };
-        }
+            $('#sort-name-groups').on('change', function (e) {
+                var keyword = $('#search-groups').val();
+                var order = $(this).val();
+                fetchMyGroups(keyword,order);
+            });
+
+         });
 
         function handleSearch(keyword){
             $.ajax({
@@ -439,8 +473,8 @@
         function fetchMyFriend(keyword,order){
             $('#friends').removeClass('d-none');
             $('#invitations').addClass('d-none');
+            $('#groups').addClass('d-none');
             var path = "/api/Friend/get-my-friends";
-
 
             if (keyword && order) {
                 path = `/api/Friend/get-my-friends/?$filter=contains(tolower(FullName), '${encodeURIComponent(keyword.toLowerCase())}')&$orderby=FullName ${order}`;
@@ -498,6 +532,7 @@
         function fetchInvitations(){
             $('#friends').addClass('d-none');
 	        $('#invitations').removeClass('d-none');
+            $('#groups').addClass('d-none');
             $.ajax({
                     url: API_URL + `/api/Friend/get-requests-to-me`,
                 type: 'GET',
@@ -595,6 +630,66 @@
             });
          }
 
+        function fetchMyGroups(keyword,order){
+            $('#friends').addClass('d-none');
+            $('#invitations').addClass('d-none');
+            $('#groups').removeClass('d-none');
+            var path = "/api/Group/my-group";
+
+            if (keyword && order) {
+                path += `/?$filter=contains(tolower(Name), '${encodeURIComponent(keyword.toLowerCase())}')&$orderby=Name ${order}`;
+            } else if (keyword) {
+                path += `/?$filter=contains(tolower(Name), '${encodeURIComponent(keyword.toLowerCase())}')`;
+            } else if (order) {
+                path += `/?$orderby=Name ${order}`;
+            } else {
+                path += `/?$orderby=Name desc`;
+            }
+
+            $.ajax({
+                url: API_URL + path,
+                type: 'GET',
+                contentType: 'application/json',
+                success : function(result){
+                    var groups = $('#groups-list');
+                    groups.empty();
+                    if(result.length > 0){
+                        result.forEach(function (item, index) {
+                            console.log(item);
+                            var group = $(`
+                            <div class="friend-bar list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center p-3 border-bottom">
+                                <img src="${item.avatar}" width="40" class="avatar" alt="">
+                                <div class="d-flex w-100 justify-content-between align-items-center position-relative">
+                                    <strong class="fs-5">${item.name}</strong>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-sm btn-floating shadow-0" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots fs-5"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li class="dropdown-item" onclick="viewGroupDetail('${item.groupId}')">View Details</li>
+                                            <li class="dropdown-item" onclick="openChatInContact('${item.groupId}','${item.name}','${item.avatar}',1)">Send Message</li>
+                                            <li class="dropdown-item text-danger" onclick="leaveGroup('${item.groupId}')">Leave group</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>`
+                            );
+
+                            groups.append(group);
+                        });
+                    }else{
+                         groups.append('<div class="list-group-item text-white">No groups found</li>');
+                    }
+                    var contentName = $('#content-name');
+                    var originalContent = contentName.html().replace(/\s*\(\d+\)$/, '').trim();
+                    contentName.html(originalContent + ` (${result.length})`);
+                },
+                error: function (error){
+                    console.error("Error fetching my groups", error);
+                }
+            });
+        }
+       
         function timeToNow(time) {
                 if(time == null) return "";
                 var inputDate = new Date(time);
@@ -690,6 +785,56 @@
             });
         }
 
+        function viewGroupDetail(id){
+            $.ajax({
+                url: API_URL + `/api/Group/detail/${id}`,
+                type: 'GET',
+                contentType: 'application/json',
+                success : function(result){
+                    if(result.success){
+                        var data = result.data;
+                        var content = $("#groupDetailContent");
+                        content.empty();
+                        console.log(data);
+                        const date = new Date(data.createdAt);
+                        const formattedDate = date.toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit'
+                        });
+                        var group = $(`
+                            <div class="d-flex gap-2 align-items-center p-3">
+                                    <img src="${data.avatar}" width="60" class="avatar-lg " alt="">
+                                <div class="fs-5">
+                                    <strong>${data.name}</strong>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="text-start px-3">
+                                <h6 class="fw-semibold fs-5 ">Infomation</h6>
+                                <div class="mb-2 ">
+                                    <strong>Create by:</strong>
+                                    <img src="${data.admin.avatar}"  class="avatar-sm" alt="">
+                                    ${data.admin.fullName} 
+                                </div>
+                                <div class="mb-2 "><strong>Create date:</strong> ${formattedDate} </div>
+                                <div class="mb-2 "><strong>Description:</strong> ${ data.isPrivate? "Private Group" : "Public Group" } </div>
+                                <div class="mb-2 "><strong>Member:</strong> ${ data.memberCount} members</div>
+                                <hr>
+                            </div>
+                        `);
+
+                        content.append(group);
+
+                        $("#groupDetailModal").modal("show");
+                    }
+                },
+                error: function (error){
+                    console.error("Error fetching my group", error);
+                }
+            });
+        }
+
         function removeFriend(id,message,tab){
             console.log(id);
             // $('#confirmDeleteModal').modal('show');
@@ -711,6 +856,29 @@
               if (result.isConfirmed) {
                   removeFriendHandler(id,tab);
               } 
+            });
+        }
+
+        function leaveGroup(id){
+            // $('#confirmDeleteModal').modal('show');
+            $("#friendDetailModal").modal("hide");
+            const swalWithBootstrapButtons = Swal.mixin({
+              customClass: {
+                confirmButton: "btn btn-danger m-2",
+                cancelButton: "btn btn-secondary m-2"
+              },
+              buttonsStyling: false
+            });
+            swalWithBootstrapButtons.fire({
+              title: "Do you want to leave this group",
+              showCancelButton: true,
+              confirmButtonText: "Yes!",
+              cancelButtonText: "Cancel!",
+              reverseButtons: true
+            }).then((result) => {
+              if (result.isConfirmed) {
+                 leaveGroupHandler(id);
+              }
             });
         }
 
@@ -790,6 +958,24 @@
             $('#chat-content').removeClass('d-none');
             $("#friendDetailModal").modal("hide");
             openChat(userId, name, avatar, type);
+        }
+
+        function leaveGroupHandler(groupId) {
+            $.ajax({
+                url: API_URL + `/api/Group/leave/${groupId}`,
+                type: 'DELETE',
+                contentType: 'application/json',
+                success: function (result) {
+                    if (result.success) {
+                        fetchMyGroups();
+                    } else {
+                        console.error('Failed to leave group:', result.message);
+                    }
+                },
+                error: function (error) {
+                    console.error('Error removing friend:', error);
+                }
+            });
         }
     </script>
 }

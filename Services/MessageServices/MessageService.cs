@@ -166,16 +166,25 @@ namespace Services.MessageServices
             }).OrderByDescending(m => m.Time).ToList();
 
             //Ket hợp với danh sách nhóm chat
-            chatList.AddRange(groupList.Select(x => new ChatItemDTO
-            {
-                Id = x.GroupId,
-                Name = x.Group.Name,
-                Avatar = x.Group.Avatar,
-                ContentPreview = x.Group.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault()?.Content,
-                Time = x.Group.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault()?.SentAt,
-                Type = (int)Enums.ChatItemType.Group,
-                IsRead = false,
-            }).OrderByDescending(m => m.Time).ToList());
+            var groupItems = groupList.Where(x => x.Group.Messages.Any())
+                                        .Select(x =>
+                                        {
+                                            var latestMessage = x.Group.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault();
+                                            return new ChatItemDTO
+                                            {
+                                                Id = x.GroupId,
+                                                Name = x.Group.Name,
+                                                Avatar = x.Group.Avatar,
+                                                ContentPreview = latestMessage?.Content,
+                                                Time = latestMessage?.SentAt,
+                                                Type = (int)Enums.ChatItemType.Group,
+                                                IsRead = false,
+                                            };
+                                        })
+                                        .OrderByDescending(x => x.Time)
+                                        .ToList();
+
+            chatList.AddRange(groupItems);
 
             chatList = chatList.OrderByDescending(x => x.Time).ToList();
 
