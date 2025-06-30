@@ -43,8 +43,11 @@ namespace Repositories.MessageRepository
         public Task AddRange(List<Message> messages) => _messageDAO.AddRange(messages);
 
         public Task<List<Message>> GetAllMessagesInGroup(int groupId) => _messageDAO.GetListMessageByCondition(x => x.GroupId == groupId).ToListAsync();
-        
 
-
+        public Task<List<Message>> GetMessagesFileInGroup(int groupId) 
+            => _messageDAO.GetListMessageByCondition(x => x.GroupId == groupId && (x.Type == (int) Enums.MessageType.Video 
+                                                                                || x.Type == (int)Enums.MessageType.Image
+                                                                                || x.Type == (int)Enums.MessageType.File
+                                                                                || x.Type == (int)Enums.MessageType.Audio)).ToListAsync();
     }
 }

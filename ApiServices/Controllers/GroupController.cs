@@ -47,7 +47,12 @@ namespace ApiServices.Controllers
         {
             try
             {
-                var result = await _groupService.getDetails(groupId);
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized();
+                }
+                var result = await _groupService.getDetails(int.Parse(userId),groupId);
                 return Ok(result);
             }
             catch (Exception ex)

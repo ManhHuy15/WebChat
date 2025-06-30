@@ -1,6 +1,7 @@
 ﻿using BusinessObjects;
 using DTOs;
 using DTOs.GroupDTOs;
+using DTOs.MessageDTOs;
 using DTOs.UserDTOs;
 using Repositories.GroupRepository;
 using Repositories.MessageRepository;
@@ -9,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,12 +20,14 @@ namespace Services.GroupServices
     {
         private readonly string AVATAR_GROUP_DEFAULT = "http://res.cloudinary.com/ddg2gdfee/image/upload/v1751255579/Webchat/groupdefault_rufg7z.jpg";
         private readonly IGroupRepository _groupRepository;
+        private readonly IMessageRepository _messageRepository;
         private readonly ICloudinaryService _cloudinaryService;
 
-        public GroupService(IGroupRepository groupRepository, ICloudinaryService cloudinaryService)
+        public GroupService(IGroupRepository groupRepository, ICloudinaryService cloudinaryService, IMessageRepository messageRepository)
         {
             _groupRepository = groupRepository;
             _cloudinaryService=cloudinaryService;
+            _messageRepository=messageRepository;
         }
 
         public async Task<ResponseDTO<bool>> CreateGroup(GroupCreateDTO g)
@@ -99,7 +103,7 @@ namespace Services.GroupServices
             };
         }
 
-        public async Task<ResponseDTO<GroupInfoDTO>> getDetails(int groupId)
+        public async Task<ResponseDTO<GroupInfoDTO>> getDetails(int userId, int groupId)
         {
             var group = await _groupRepository.GetDetails(groupId);
             if (group == null)
@@ -113,6 +117,8 @@ namespace Services.GroupServices
                 };
             }
 
+            var messageFile = await _messageRepository.GetMessagesFileInGroup(groupId);
+
             var ressult = new GroupInfoDTO
             {
                 Avatar = group.Avatar,
@@ -125,7 +131,14 @@ namespace Services.GroupServices
                     Avatar = group.Admin.Avatar,
                     FullName = group.Admin.FullName,
                 },
-               memberCount = group.GroupMembers.Count,
+                memberCount = group.GroupMembers.Count,
+                isAdmin = group.AdminId == userId,
+                Messages = messageFile.Any() ? messageFile.Select(x => new MessageDTO
+                                                {
+                                                    Type = x.Type,
+                                                    Content = x.Content,
+                                                }).ToList() 
+                                                : new List<MessageDTO>(),
             };
 
 

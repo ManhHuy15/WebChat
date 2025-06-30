@@ -14,5 +14,6 @@ namespace Repositories.MessageRepository
         Task<List<Message>> GetAllMessagesUser(int userId, int receiverId);
         Task<List<Message>> GetAllMessagesInGroup(int groupId);
         Task AddRange(List<Message> messages );
+        Task<List<Message>> GetMessagesFileInGroup(int groupId);
     }
 }

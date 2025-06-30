@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DTOs.UserDTOs;
+using DTOs.MessageDTOs;
 
 namespace DTOs.GroupDTOs
 {
@@ -18,5 +19,7 @@ namespace DTOs.GroupDTOs
         public bool IsPrivate { get; set; }
         public  UserBaseDTO Admin { get; set; }
         public  int memberCount { get; set; }
+        public bool isAdmin { get; set; }
+        public List<MessageDTO> Messages { get; set; }
     }
 }
