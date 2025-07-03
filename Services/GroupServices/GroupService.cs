@@ -6,13 +6,7 @@ using DTOs.UserDTOs;
 using Repositories.GroupRepository;
 using Repositories.MessageRepository;
 using Services.ClouldinaryServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Services.GroupServices
 {
@@ -134,10 +128,10 @@ namespace Services.GroupServices
                 memberCount = group.GroupMembers.Count,
                 isAdmin = group.AdminId == userId,
                 Messages = messageFile.Any() ? messageFile.Select(x => new MessageDTO
-                                                {
-                                                    Type = x.Type,
-                                                    Content = x.Content,
-                                                }).ToList() 
+                {
+                    Type = x.Type,
+                    Content = x.Content,
+                }).ToList()
                                                 : new List<MessageDTO>(),
             };
 
@@ -149,6 +143,27 @@ namespace Services.GroupServices
                 success = true,
                 data = ressult
             };
+        }
+
+        public async Task<List<UserBaseDTO>> GetMembers(int groupId)
+        {
+            var members = await _groupRepository.GetMembers(groupId);
+
+            if (members == null)
+            {
+                return new List<UserBaseDTO>();
+           
+            }
+
+            var result = members.Select(x => new UserBaseDTO
+            {
+                Avatar = x.User.Avatar,
+                FullName = x.User.FullName,
+                UserId = x.User.UserId,
+                Email = x.User.Email,
+            }).ToList();
+
+            return result;
         }
 
         public async Task<List<GroupBaseDTO>> getMyGroups(int userId)
@@ -172,7 +187,7 @@ namespace Services.GroupServices
 
         public async Task<ResponseDTO<bool>> RemoveMemberFromGroup(int userId, int groupId)
         {
-            var result = await _groupRepository.RemoveMemberFromGroup( userId, groupId);
+            var result = await _groupRepository.RemoveMemberFromGroup(userId, groupId);
             return new ResponseDTO<bool>
             {
                 status = HttpStatusCode.OK,
@@ -180,6 +195,53 @@ namespace Services.GroupServices
                 success = result,
                 data = result
             };
+        }
+
+        public async Task<ResponseDTO<bool>> UpdateGroup(int groupId, GroupUpdateDTO group)
+        {
+
+            var groupUpdate = new Group
+            {
+                GroupId = groupId,
+                Name = group.Name,
+            };
+
+            if (group.Avatar != null)
+            {
+                var res = await _cloudinaryService.UpLoadFileAsync(group.Avatar);
+                groupUpdate.Avatar = res.Url;
+            }
+
+            var result = await _groupRepository.UpdateGroup(groupUpdate);
+
+            return new ResponseDTO<bool>
+            {
+                status = HttpStatusCode.OK,
+                message = result ? "Update Success" : "Update Fail",
+                success = result,
+                data = result
+            };
+
+        }
+
+        public async Task<ResponseDTO<bool>> AddMembersToGroup(int groupId, AddMemberDTO members)
+        {
+            var memberGroup = members.UserIds.Select(x => new GroupMember
+            {
+                GroupId = groupId,
+                UserId = x,
+            }).ToList();
+
+            var result = await _groupRepository.AddMemberToGroup(memberGroup);
+
+            var res = new ResponseDTO<bool>
+            {
+                status = HttpStatusCode.OK,
+                message = result ? "Success" : "Fail",
+                success = result,
+                data = result
+            };
+            return res;
         }
     }
 }

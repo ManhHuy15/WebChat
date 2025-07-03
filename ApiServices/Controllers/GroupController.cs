@@ -1,10 +1,8 @@
 ﻿using DTOs.GroupDTOs;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Services.ClouldinaryServices;
 using Services.GroupServices;
-using Services.MessageServices;
 using System.Security.Claims;
 
 namespace ApiServices.Controllers
@@ -93,7 +91,51 @@ namespace ApiServices.Controllers
                 group.AdminId = int.Parse(userId);
                 var result = await _groupService.CreateGroup(group);
                 return Ok(result);
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> UpdateGroup([FromForm] GroupUpdateDTO group, int id)
+        {
+            try
+            {
+                var result = await _groupService.UpdateGroup(id, group);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpGet("get-members/{groupId}")]
+        [EnableQuery]
+        public async Task<IActionResult> GetMember(int groupId)
+        {
+            try
+            {
+                var result = await _groupService.GetMembers(groupId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        [HttpPost("add-members/{groupId}")]
+        public async Task<IActionResult> AddMember(int groupId, [FromBody] AddMemberDTO members)
+        {
+            try
+            {
+                var result = await _groupService.AddMembersToGroup(groupId, members);
+                return Ok(result);
+            }
+            catch (Exception ex)
             {
                 return BadRequest(ex);
             }

@@ -1,9 +1,4 @@
 ﻿using BusinessObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Repositories.GroupRepository
 {
@@ -14,5 +9,7 @@ namespace Repositories.GroupRepository
         Task<bool> RemoveMemberFromGroup(int userId, int groupId);
         Task<int> CreateGroup(Group group);
         Task<bool> AddMemberToGroup(List<GroupMember> groupMembers);
+        Task<bool> UpdateGroup(Group group);
+        Task<List<GroupMember>> GetMembers(int groupId);
     }
 }

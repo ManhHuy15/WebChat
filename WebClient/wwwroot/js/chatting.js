@@ -57,6 +57,10 @@ $('#btn-send').on('click', async function (e) {
 });
 
 window.openChat = function (id, name, avatar, type) {
+    var isHidden = $('#chat-detail').hasClass('d-none');
+    if (!isHidden) {
+        $('#chat-detail').addClass('d-none');
+    }
     chatAvatar.attr('src', avatar);
     chatName.text(name);
     chatId.val(id);

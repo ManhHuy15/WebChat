@@ -1,11 +1,6 @@
 ﻿using BusinessObjects;
 using DataAccess;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Repositories.GroupRepository
 {
@@ -26,5 +21,8 @@ namespace Repositories.GroupRepository
         public async Task<bool> RemoveMemberFromGroup(int userId, int groupId) => await _groupDAO.RemoveMember(userId, groupId);
 
         public async Task<bool> AddMemberToGroup(List<GroupMember> groupMembers) => await _groupDAO.AddMember(groupMembers);
+        public async Task<bool> UpdateGroup(Group group) => await _groupDAO.UpdateGroup(group);
+
+        public async Task<List<GroupMember>> GetMembers(int groupId) => await _groupDAO.GetGroupMemberByCondition(gm => gm.GroupId == groupId).ToListAsync();
     }
 }

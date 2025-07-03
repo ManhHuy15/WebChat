@@ -1,11 +1,6 @@
 ﻿using BusinessObjects;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataAccess
 {
@@ -39,7 +34,7 @@ namespace DataAccess
                 return await _context.Groups.Include(g => g.Admin)
                                             .Include(g => g.GroupMembers)
                                             .FirstOrDefaultAsync(g => g.GroupId == id);
-                                            
+
             }
             catch (Exception ex)
             {
@@ -85,6 +80,29 @@ namespace DataAccess
             try
             {
                 _context.GroupMembers.AddRange(groupMembers);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<bool> UpdateGroup(Group group)
+        {
+            try
+            {
+                var existingGroup = await _context.Groups.FirstOrDefaultAsync(g => g.GroupId == group.GroupId);
+                if (existingGroup == null)
+                {
+                    return false;
+                }
+
+                existingGroup.Name = group.Name;
+                existingGroup.Avatar = group.Avatar ?? existingGroup.Avatar;
+
+                _context.Groups.Update(existingGroup);
                 await _context.SaveChangesAsync();
                 return true;
             }
