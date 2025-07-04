@@ -9,12 +9,10 @@ using System.Threading.Tasks;
 
 namespace DataAccess
 {
-    public class UserDAO
+    public class UserDAO : BaseDAO
     {
-        private readonly WebChatContext _context;
-        public UserDAO(WebChatContext context)
+        public UserDAO(WebChatContext context) : base(context)
         {
-            _context = context;
         }
 
         public async Task<User> GetUserByCondition(Expression<Func<User, bool>> condition)
@@ -22,7 +20,9 @@ namespace DataAccess
             var user = new User();
             try
             {
-                user = await _context.Users.Where(condition).FirstOrDefaultAsync();
+                user = await _context.Users.Where(condition).Include(u => u.ReceiverFriendShips)
+                                                            .Include(u => u.SenderFriendShips)
+                                                            .FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -55,6 +55,20 @@ namespace DataAccess
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        public async Task<List<User>> GetAll()
+        {
+            var users = new List<User>();
+            try
+            {
+                users = await _context.Users.Where(x => x.IsActive == true).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            return users;
         }
     }
 }

@@ -1,0 +1,902 @@
+﻿@page
+@model WebClient.Pages.ContactModel
+@{
+}
+
+<style>
+    .contact-sidebar {
+        width: 22em;
+        overflow-y: auto;
+        background-color: #1f1f1f;
+        margin: 0 1rem 0 0;
+        border-radius: 0.5rem;
+        height: 95vh;
+    }
+
+    .contact-item {
+        background-color: transparent;
+    }
+
+    .contact-item:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+    }
+
+    .contact-item.active {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #212529;
+        border-width: 0;
+        border-radius: 0.5rem;
+        border-top-width: 0px !important;
+    }
+
+    .contact-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: #1f1f1f;
+        margin: 0 1rem 0 0;
+        border-radius: 0.5rem;
+        height: 95vh;
+    }
+
+    .contact-header {
+        flex: 0 0 auto;
+        border-bottom: 1px solid black;
+        padding: 1rem;
+        background-color: #1f1f1f;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+
+    .contact-body {
+        flex: 1 1 auto;
+        flex-grow: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1rem;
+        background-color: #1f1f1f;
+    }
+
+    #contact-body::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #contact-body::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    #contact-body::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    #contact-body::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
+
+   
+
+    .m-h-12 {
+        max-height: 12rem;
+        width: 100%;
+    }
+
+    .friend-bar {
+        background-color: transparent;
+        cursor: pointer;
+    }
+
+    .friend-bar:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+    }
+
+    .search-list {
+        background-color: #363636;
+        z-index: 10;
+        min-height: 30vh;
+        overflow-y: auto;
+    }
+</style>
+<link rel="stylesheet" href="~/css/chatting.css" asp-append-version="true" />
+
+<div class="d-flex h-100 py-3">
+    <div class="contact-sidebar d-flex flex-column">
+        <div class="p-3 position-relative ">
+            <div class="input-group rounded">
+                <input id="search-user" type="search" class="form-control rounded" placeholder="Search by name or email" aria-label="Search" aria-describedby="search-addon"/>
+            </div>
+            <ul id="search-list" class="search-list list-group list-group-flush position-absolute w-100 start-0 mt-3 px-3 py-1 d-none">
+                <li class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center  friend-bar ">
+					<img src="${item.avatar}" width="40" class="avatar" alt="">
+                    <strong>${item.name}</strong>
+                 </li>
+                <li class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center  friend-bar">
+                    <img src="${item.avatar}" width="40" class="avatar" alt="">
+                    <strong>${item.name}</strong>
+                </li>
+            </ul>
+        </div>
+
+        <div class="list-group list-group-flush flex-grow-1 px-2" id="contactList">
+            <a href="#" class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center contact-item active" onclick="fetchMyFriend()">
+                <i class="bi bi-person-check-fill fs-4"></i>
+                <div class="flex-grow-1">
+                    <strong>Friends</strong>
+                </div>
+            </a>
+            <a href="#" class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center contact-item" onclick="fetchInvitations()">
+                <i class="bi bi-person-plus-fill fs-4"></i>
+                <div class="flex-grow-1">
+                    <strong>Friend Invitation</strong>
+                </div>
+            </a>
+            <a href="#" class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center contact-item" onclick="fetchMyGroups()">
+                <i class="bi bi-people-fill fs-4"></i>
+                <div class="flex-grow-1">
+                    <strong>Group Message</strong>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div id="contact-content" class="contact-content text-white d-flex flex-column">
+        <div class="contact-header d-flex justify-content-between align-items-center">
+            <div class="d-flex gap-2 align-items-center" id="content-name">
+            </div>
+        </div>
+
+        <div id="contact-body" class="contact-body d-flex flex-column">
+            <div id="loading-spinner" class="text-center my-2" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <div id="friends">
+                <div class="d-flex justify-content-between">
+                    <div class="input-group input-group-sm w-75">
+                        <span class="input-group-text border-0" id="search-addon"><i class="fas fa-search"></i></span>
+                        <input type="search"
+                               id="search-friends"
+                               class="form-control rounded"
+                               placeholder="Search friends"
+                               aria-label="Search"
+                               aria-describedby="search-addon" />
+                    </div>
+                    <div class="mx-3">
+                        <select id="sort-name" class="form-select form-select-sm" aria-label="Default select example">
+                            <option value="asc" selected>(Name) A-Z</option>
+                            <option value="desc">(Name) Z-A</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="friends-list" class="mt-5">
+                </div>
+            </div>
+            <div id="invitations" class="d-none">
+                <div class="mt-2">
+                    <div>
+                        <strong>Friend Invitations</strong>
+                        <span id="invitation-count" class="text-muted"></span>
+                    </div>
+                    <div class="Invitation-list row g-3 mt-2">
+                        <div id="invitation-list" class="col-12 col-sm-6 col-md-3">
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-5">
+                    <div>
+                        <strong>My Invitations</strong>
+                        <span id="my-invitations-count" class="text-muted"></span>
+                    </div>
+                    <div class="Invitation-list row g-3 mt-2">
+                        <div id="my-request-list" class="col-12 col-sm-6 col-md-3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="groups" class="d-none">
+                <div class="d-flex justify-content-between">
+                    <div class="input-group input-group-sm w-75">
+                        <span class="input-group-text border-0" id="search-addon-group"><i class="fas fa-search"></i></span>
+                        <input type="search"
+                               id="search-groups"
+                               class="form-control rounded"
+                               placeholder="Search groups"
+                               aria-label="Search"
+                               aria-describedby="search-addon-group" />
+                    </div>
+                    <div class="mx-3">
+                        <select id="sort-name-groups" class="form-select form-select-sm" aria-label="Default select example">
+                            <option value="asc" selected>(Name) A-Z</option>
+                            <option value="desc">(Name) Z-A</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="groups-list" class="mt-5">
+                </div>
+            </div>
+        </div>  
+    </div>
+
+    <div id="chat-content" class="chat-content text-white  d-flex flex-column d-none">
+        <div class="chat-header d-flex justify-content-between align-items-center">
+            <div class="d-flex gap-2">
+                <img id="chat-avatar" src="https://scontent.fhan15-1.fna.fbcdn.net/v/t39.30808-6/482019444_122183994404333369_5508670626021919815_n.png?stp=dst-jpg_tt6&_nc_cat=109&ccb=1-7&_nc_sid=2285d6&_nc_ohc=6Wm8HoVrr7YQ7kNvwHAcI2-&_nc_oc=AdndOHVw3uGmQPQe8GJR0VlBYXB-B8Oz49gzWSTKb3zb61Bwfnc_SYEQSf3NtGfGGwk&_nc_zt=23&_nc_ht=scontent.fhan15-1.fna&_nc_gid=_7k3Dmuxuu1TZTW0kieKqA&oh=00_AfNPJihpfAgRqDEA3_3Jiem3JZtvAvVgBiPrCg1OCXWSVQ&oe=6854629C" class="avatar" alt="">
+                <div>
+                    <h6 class="mb-0" id="chat-name">Cloud của tôi</h6>
+                    <small class="text-muted">Lưu và đồng bộ dữ liệu giữa các thiết bị</small>
+                    <input type="hidden" id="chat-id" />
+                    <input type="hidden" id="chat-type" />
+                </div>
+            </div>
+        </div>
+
+        <div id="chat-messages" class="chat-messages d-flex flex-column">
+            <div id="loading-spinner" class="text-center my-2" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-footer">
+            <div id="preview-wrapper" class="mb-2 d-flex gap-2 flex-wrap"></div>
+
+            <div class="d-flex align-items-center gap-2">
+                <input type="file" id="file-input" multiple class="d-none" accept="image/*,video/*,.pdf,.doc,.docx,.txt">
+                <i class="bi bi-paperclip fs-5 text-primary" role="button" id="btn-select-file"></i>
+                <input type="text" class="form-control" id="chat-input" placeholder="Nhập tin nhắn tới Cloud của tôi">
+                <i class="fas fa-paper-plane fs-5 text-primary" id="btn-send" role="button"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="friendDetailModal" tabindex="-1" aria-labelledby="friendDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content text-white w-75" style="background-color: #363636">
+            <div class="modal-header">
+                <h5 class="modal-title" id="friendDetailLabel">User infomation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body" id="friendDetailContent">
+               
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="groupDetailModal" tabindex="-1" aria-labelledby="groupDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content text-white w-75" style="background-color: #363636">
+            <div class="modal-header">
+                <h5 class="modal-title" id="groupDetailLabel">Group infomation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body" id="groupDetailContent">
+               
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-3 w-75" style="background-color: #363636">
+            <div class="modal-header text-white">
+                <h5 class="modal-title">Confirm</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <span class="text-white">Do you want to remove this friend ?</span>
+                <hr>
+                <div class="text-end">
+                    <button type="button" class="btn btn-secondary  shadow-0" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger  shadow-0" id="btnConfirmDelete">Remove</button>
+                </div>
+            </div>
+           
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/chatting.js" asp-append-version="true"></script>
+    <script>
+        function updateContentName(item) {
+            const iconHtml = item.find('i').prop('outerHTML');
+            const titleText = item.find('strong').text();
+            $('#content-name').html(`${iconHtml} ${titleText}`);
+        }
+
+        $(function () {
+            $('#contactList').on('click', '.contact-item', function (e) {
+                e.preventDefault();
+                $('#contact-content').removeClass('d-none');
+                $('#chat-content').addClass('d-none');
+                $('.contact-item').removeClass('active');
+                $(this).addClass('active');
+                updateContentName($(this));
+            });
+            const firstItem = $('#contactList .contact-item').first();
+            updateContentName(firstItem);
+
+            fetchMyFriend('','asc');
+
+            $('#search-user').on('input', debounce(function (e) {
+                var keyword = $(this).val();
+                if (keyword.length >= 3) {
+
+                    $('#search-list').removeClass('d-none');
+                    handleSearch(keyword);
+                } else {
+                    $('#search-list').addClass('d-none');
+                    $('#search-list').empty();
+                }
+            }, 400)); 
+
+            $('#search-friends').on('input', debounce(function (e) {
+                var keyword = $(this).val();
+                var order = $('#sort-name').val();
+                fetchMyFriend(keyword,order);
+            }, 300));
+
+            $('#sort-name').on('change', function (e) {
+			    var keyword = $('#search-friends').val();
+			    var order = $(this).val();
+			    fetchMyFriend(keyword,order);
+		    });
+
+            $('#search-groups').on('input', debounce(function (e) {
+                var keyword = $(this).val();
+                var order = $('#sort-name-groups').val();
+                fetchMyGroups(keyword,order);
+            }, 300));
+
+            $('#sort-name-groups').on('change', function (e) {
+                var keyword = $('#search-groups').val();
+                var order = $(this).val();
+                fetchMyGroups(keyword,order);
+            });
+
+         });
+
+        function handleSearch(keyword){
+            $.ajax({
+                url: API_URL + `/api/User/get-all/?$filter=contains(tolower(Email), tolower('${keyword}')) or contains(tolower(FullName), tolower('${keyword}'))&$top=10`,
+                type: 'GET',
+                contentType: 'application/json',
+                success: function (result) {
+                    var list = $('#search-list');
+                    list.empty();
+                    if (result.length > 0) {
+                        result.forEach(function (item) {
+                            var li = $(`
+                                 <li class="list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center friend-bar" onclick="viewFriendDetail('${item.userId}') ">
+                                    <img src="${item.avatar}" width="40" class="avatar" alt="">
+                                    <strong>${item.fullName}</strong>
+                                </li>
+                            `);
+                            list.append(li);
+                        });
+                    } else {
+                        list.append('<li class="list-group-item text-white">No results found</li>');
+                    }
+                },
+                error: function () {
+                        $('#search-list').empty().append('<li class="list-group-item text-white">No results found</li>');
+                }
+            });
+        }
+
+        function fetchMyFriend(keyword,order){
+            $('#friends').removeClass('d-none');
+            $('#invitations').addClass('d-none');
+            $('#groups').addClass('d-none');
+            var path = "/api/Friend/get-my-friends";
+
+            if (keyword && order) {
+                path = `/api/Friend/get-my-friends/?$filter=contains(tolower(FullName), '${encodeURIComponent(keyword.toLowerCase())}')&$orderby=FullName ${order}`;
+            } else if (keyword) {
+                path = `/api/Friend/get-my-friends/?$filter=contains(tolower(FullName), '${encodeURIComponent(keyword.toLowerCase())}')`;
+            } else if (order) {
+                path = `/api/Friend/get-my-friends/?$orderby=FullName ${order}`;
+            } else {
+                path = `/api/Friend/get-my-friends/?$orderby=FullName desc`;
+            }
+
+            $.ajax({
+                url: API_URL + path,
+                type: 'GET',
+                contentType: 'application/json',
+                success : function(result){
+                    var friends = $('#friends-list');
+                    friends.empty();
+                    if(result.length > 0){
+                        result.forEach(function (item, index) {
+                            var friend = $(`
+                            <div class="friend-bar list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center p-3 border-bottom">
+                                <img src="${item.avatar}" width="40" class="avatar" alt="">
+                                <div class="d-flex w-100 justify-content-between align-items-center position-relative">
+                                    <strong class="fs-5">${item.fullName}</strong>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-sm btn-floating shadow-0" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots fs-5"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li class="dropdown-item" onclick="viewFriendDetail('${item.userId}')">View Profile</li>
+                                            <li class="dropdown-item" onclick="openChatInContact('${item.userId}','${item.fullName}','${item.avatar}',0)">Send Message</li>
+                                            <li class="dropdown-item text-danger" onclick="removeFriend('${item.userId}','Do you want to remove this friend?',1)">Remove Friend</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>`
+                            );
+
+                            friends.append(friend);
+                        });
+                    }else{
+                         friends.append('<div class="list-group-item text-white">No friends found</li>');
+                    }
+                    var contentName = $('#content-name');
+                    var originalContent = contentName.html().replace(/\s*\(\d+\)$/, '').trim();
+                    contentName.html(originalContent + ` (${result.length})`);
+                },
+                error: function (error){
+                    console.error("Error fetching my friend", error);
+                }
+            });
+        }
+
+        function fetchInvitations(){
+            $('#friends').addClass('d-none');
+	        $('#invitations').removeClass('d-none');
+            $('#groups').addClass('d-none');
+            $.ajax({
+                    url: API_URL + `/api/Friend/get-requests-to-me`,
+                type: 'GET',
+                contentType: 'application/json',
+                success : function(result){
+                    var invitations = $('#invitation-list');
+                    var count = $('#invitation-count');
+                    invitations.empty();
+                    if(result.success){
+                        var data = result.data;
+                        console.log(result);
+                        count.text(`(${data.length})`);
+                        data.forEach(function (item, index) {
+                            console.log(item);
+                            var friend = $(`
+                                    <div class="card">
+                                        <div class="card-body d-flex gap-2 align-items-center p-3" onclick="viewFriendDetail('${item.user.userId}')" style="cursor: pointer;">
+                                            <img src="${item.user.avatar}" width="30" class="avatar" alt="">
+                                            <div class=" ">
+                                                <strong>${item.user.fullName}</strong>
+                                                <div>
+                                                    <span class="text-muted">
+                                                        ${timeToNow(item.updateAt)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer d-flex gap-2">
+                                            <div class="w-50">
+                                                <button type="button" class="btn btn-sm btn-danger shadow-0 w-100" onclick="removeFriend('${item.user.userId}','Do you want to accept this invitation?',2) ">
+                                                    Reject
+                                                </button>
+                                            </div>
+                                            <div class="w-50">
+                                                <button type="button" class="btn btn-sm btn-success shadow-0 w-100" onclick="acceptInvitation('${item.user.userId}',1) ">
+                                                    Accept
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>`
+                                );
+
+                                invitations.append(friend);
+                        });
+                    }else{
+                        console.error(result.message);
+                    }
+                },
+                error: function (error){
+                    console.error("Error fetching my friend", error);
+                }
+            });
+            $.ajax({
+                url: API_URL + `/api/Friend/get-my-requests`,
+                type: 'GET',
+                contentType: 'application/json',
+                success : function(result){
+                    var myRequests = $('#my-request-list');
+                    var count = $('#my-invitations-count');
+                    myRequests.empty();
+                    if(result.success){
+                        var data = result.data;
+                        count.text(`(${data.length})`);
+                        data.forEach(function (item, index) {
+                            var friend = $(`
+                                <div class="card">
+                                    <div class="card-body d-flex gap-2 align-items-center p-3" onclick="viewFriendDetail('${item.friend.userId}')" style="cursor: pointer;">
+                                    <img src="${item.friend.avatar}" width="30" class="avatar" alt="">
+                                    <div class=" ">
+                                        <strong >${item.friend.fullName}</strong>
+                                        <div>
+                                            <span class="text-muted">
+                                                ${timeToNow(item.updateAt)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <button type="button" class="btn btn-sm btn-secondary shadow-0 w-100" onclick="removeFriend('${item.friend.userId}','Do you want revoke invitation ?',2)">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>`
+                            );
+
+                            myRequests.append(friend);
+                        });
+                    }else{
+                        console.error(result.message);
+                    }
+                },
+                error: function (error){
+                    console.error("Error fetching my friend", error);
+                }
+            });
+         }
+
+        function fetchMyGroups(keyword,order){
+            $('#friends').addClass('d-none');
+            $('#invitations').addClass('d-none');
+            $('#groups').removeClass('d-none');
+            var path = "/api/Group/my-group";
+
+            if (keyword && order) {
+                path += `/?$filter=contains(tolower(Name), '${encodeURIComponent(keyword.toLowerCase())}')&$orderby=Name ${order}`;
+            } else if (keyword) {
+                path += `/?$filter=contains(tolower(Name), '${encodeURIComponent(keyword.toLowerCase())}')`;
+            } else if (order) {
+                path += `/?$orderby=Name ${order}`;
+            } else {
+                path += `/?$orderby=Name desc`;
+            }
+
+            $.ajax({
+                url: API_URL + path,
+                type: 'GET',
+                contentType: 'application/json',
+                success : function(result){
+                    var groups = $('#groups-list');
+                    groups.empty();
+                    if(result.length > 0){
+                        result.forEach(function (item, index) {
+                            console.log(item);
+                            var group = $(`
+                            <div class="friend-bar list-group-item border-0 list-group-item-action text-white d-flex gap-2 align-items-center p-3 border-bottom">
+                                <img src="${item.avatar}" width="40" class="avatar" alt="">
+                                <div class="d-flex w-100 justify-content-between align-items-center position-relative">
+                                    <strong class="fs-5">${item.name}</strong>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-sm btn-floating shadow-0" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots fs-5"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li class="dropdown-item" onclick="viewGroupDetail('${item.groupId}')">View Details</li>
+                                            <li class="dropdown-item" onclick="openChatInContact('${item.groupId}','${item.name}','${item.avatar}',1)">Send Message</li>
+                                            <li class="dropdown-item text-danger" onclick="leaveGroup('${item.groupId}')">Leave group</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>`
+                            );
+
+                            groups.append(group);
+                        });
+                    }else{
+                         groups.append('<div class="list-group-item text-white">No groups found</li>');
+                    }
+                    var contentName = $('#content-name');
+                    var originalContent = contentName.html().replace(/\s*\(\d+\)$/, '').trim();
+                    contentName.html(originalContent + ` (${result.length})`);
+                },
+                error: function (error){
+                    console.error("Error fetching my groups", error);
+                }
+            });
+        }
+       
+        function timeToNow(time) {
+                if(time == null) return "";
+                var inputDate = new Date(time);
+                var now = new Date();
+                var diffMs = now - inputDate;
+                var diffSec = Math.floor(diffMs / 1000);
+                var diffMin = Math.floor(diffSec / 60);
+                var diffHour = Math.floor(diffMin / 60);
+                var diffDay = Math.floor(diffHour / 24);
+                var diffMonth = Math.floor(diffDay / 30);
+
+                if(diffMonth >= 1){
+                    return `${diffMonth} tháng trước`;
+                } else if (diffDay >= 1) {
+                    return `${diffDay} ngày trước`;
+                } else if (diffHour >= 1) {
+                    return `${diffHour} giờ trước`;
+                } else if (diffMin >= 1) {
+                    return `${diffMin} phút trước`;
+                } else {
+                    return `Vừa xong`;
+                }
+            }
+
+        function viewFriendDetail(id){
+            $.ajax({
+                url: API_URL + `/api/User/get-user/${id}`,
+                type: 'GET',
+                contentType: 'application/json',
+                success : function(result){
+                    console.log(result);
+				    if(result.success){
+					    var data = result.data;
+                        var content = $("#friendDetailContent");
+					    content.empty();
+                        console.log(data);
+
+                        var btn = `<button type="button" class="btn btn-sm btn-info shadow-0 w-100" onclick="sendInvitation('${data.userId}') ">
+                                        Send Invitation
+                                    </button>`
+                        if(data.friendStatus == "friend"){
+                            btn = `<button type="button" class="btn btn-sm btn-secondary shadow-0 w-100"
+                                    onclick="openChatInContact('${data.userId}','${data.fullName}','${data.avatar}',0)">
+                                        Send Message
+                                    </button>`
+                        }else if(data.friendStatus  == "myrequest"){
+                            btn = `<button type="button" class="btn btn-sm btn-secondary shadow-0 w-100" onclick="removeFriend('${data.userId}', 'Do you want revoke invitation ?',3) ">
+                                        Cancel
+                                    </button>`
+                            }else if(data.friendStatus == "requestme"){
+                            btn = `<div class=" d-flex gap-2">
+                                        <div class="w-50">
+                                            <button type="button" class="btn btn-sm btn-danger shadow-0 w-100" onclick="removeFriend('${data.userId}','Do you want to accept this invitation?',3) ">
+                                                Reject
+                                            </button>
+                                        </div>
+                                        <div class="w-50">
+                                            <button type="button" class="btn btn-sm btn-success shadow-0 w-100" onclick="acceptInvitation('${data.userId}',3)">
+                                                Accept
+                                            </button>
+                                        </div>
+                                    </div>`
+                        }
+
+				        var user = $(`
+                            <div class="d-flex gap-2 align-items-center p-3">
+                                    <img src="${data.avatar}" width="60" class="avatar-lg " alt="">
+                                <div class="fs-5">
+                                    <strong>${data.fullName}</strong>
+                                </div>
+                            </div>
+                            ${btn}
+                            <hr>
+                            <!-- Thông tin cá nhân -->
+                            <div class="text-start px-3">
+                                <h6 class="fw-semibold fs-5 ">Infomation</h6>
+                                <div class="mb-2 "><strong>Gender:</strong> ${(data.gender == null) ? "None" : (data.gender ? "Male" : "Female")}  </div>
+                                <div class="mb-2 "><strong>Birth:</strong> ${ data.birth? data.birth : "None" } </div>
+                                <div class="mb-2 "><strong>Phone:</strong> ${ data.phone? data.phone : "None" } </div>
+                                <div class="mb-3 "><strong>Email:</strong> ${ data.email? data.email : "None" } </div>
+                                <hr>
+                            </div>
+                        `);
+
+                        content.append(user);
+
+                        $("#friendDetailModal").modal("show");
+                    }
+                },
+                error: function (error){
+                    console.error("Error fetching my friend", error);
+                }
+            });
+        }
+
+        function viewGroupDetail(id){
+            $.ajax({
+                url: API_URL + `/api/Group/detail/${id}`,
+                type: 'GET',
+                contentType: 'application/json',
+                success : function(result){
+                    if(result.success){
+                        var data = result.data;
+                        var content = $("#groupDetailContent");
+                        content.empty();
+                        console.log(data);
+                        const date = new Date(data.createdAt);
+                        const formattedDate = date.toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit'
+                        });
+                        var group = $(`
+                            <div class="d-flex gap-2 align-items-center p-3">
+                                    <img src="${data.avatar}" width="60" class="avatar-lg " alt="">
+                                <div class="fs-5">
+                                    <strong>${data.name}</strong>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="text-start px-3">
+                                <h6 class="fw-semibold fs-5 ">Infomation</h6>
+                                <div class="mb-2 ">
+                                    <strong>Create by:</strong>
+                                    <img src="${data.admin.avatar}"  class="avatar-sm" alt="">
+                                    ${data.admin.fullName} 
+                                </div>
+                                <div class="mb-2 "><strong>Create date:</strong> ${formattedDate} </div>
+                                <div class="mb-2 "><strong>Description:</strong> ${ data.isPrivate? "Private Group" : "Public Group" } </div>
+                                <div class="mb-2 "><strong>Member:</strong> ${ data.memberCount} members</div>
+                                <hr>
+                            </div>
+                        `);
+
+                        content.append(group);
+
+                        $("#groupDetailModal").modal("show");
+                    }
+                },
+                error: function (error){
+                    console.error("Error fetching my group", error);
+                }
+            });
+        }
+
+        function removeFriend(id,message,tab){
+            console.log(id);
+            // $('#confirmDeleteModal').modal('show');
+            $("#friendDetailModal").modal("hide");
+            const swalWithBootstrapButtons = Swal.mixin({
+              customClass: {
+                confirmButton: "btn btn-danger m-2",
+				cancelButton: "btn btn-secondary m-2"
+              },
+              buttonsStyling: false
+            });
+            swalWithBootstrapButtons.fire({
+              title: message,
+              showCancelButton: true,
+              confirmButtonText: "Yes!",
+              cancelButtonText: "Cancel!",
+              reverseButtons: true
+            }).then((result) => {
+              if (result.isConfirmed) {
+                  removeFriendHandler(id,tab);
+              } 
+            });
+        }
+
+        function leaveGroup(id){
+            // $('#confirmDeleteModal').modal('show');
+            $("#friendDetailModal").modal("hide");
+            const swalWithBootstrapButtons = Swal.mixin({
+              customClass: {
+                confirmButton: "btn btn-danger m-2",
+                cancelButton: "btn btn-secondary m-2"
+              },
+              buttonsStyling: false
+            });
+            swalWithBootstrapButtons.fire({
+              title: "Do you want to leave this group",
+              showCancelButton: true,
+              confirmButtonText: "Yes!",
+              cancelButtonText: "Cancel!",
+              reverseButtons: true
+            }).then((result) => {
+              if (result.isConfirmed) {
+                 leaveGroupHandler(id);
+              }
+            });
+        }
+
+        function sendInvitation(friendId){
+            $.ajax({
+                url: API_URL + "/api/Friend/add",
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(friendId),
+                success: async function (result) {
+                    if(result.success){
+                        viewFriendDetail(friendId);
+                         fetchInvitations();
+                         await connection.invoke('Notification',friendId, "send to you a invitation");
+                    }else{
+				        console.error(result.message);
+                    }
+                },
+                error: function (error) {
+                    console.error("Error invitation", error);
+                }
+            });
+        }
+
+        function acceptInvitation(friendId,tab) {
+            $.ajax({
+                url: API_URL + '/api/Friend/accept',
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(friendId),
+                success: async function (result) {
+                    if (result.success) {
+                        fetchMyFriend();
+                       if(tab == 3){
+                            viewFriendDetail(friendId);
+                        }
+                        await connection.invoke('Notification',friendId, "accepted your invitation");
+                    } else {
+                        console.error('Failed to accept friend request:', result.message);
+                    }
+                },
+                error: function (error) {
+                    console.error('Error accepting friend request:', error);
+           
+                }
+            });
+        }
+
+        function removeFriendHandler(friendId,tab) {
+            $.ajax({
+                url: API_URL + '/api/Friend/remove',
+                type: 'DELETE',
+                contentType: 'application/json',
+                data: JSON.stringify(friendId),
+                success: function (result) {
+                    if (result.success) {
+                        if(tab == 1){
+                            fetchMyFriend();
+                        }else if(tab == 2){
+                            fetchInvitations();
+                        }else if(tab == 3){
+                            viewFriendDetail(friendId);
+                            fetchInvitations();
+                        }
+                    } else {
+                        console.error('Failed to remove friend:', result.message);
+                    }
+                },
+                error: function (error) {
+                    console.error('Error removing friend:', error);
+                }
+            });
+        }
+
+        function openChatInContact(userId, name, avatar, type) {
+            $('#contact-content').addClass('d-none');
+            $('#chat-content').removeClass('d-none');
+            $("#friendDetailModal").modal("hide");
+            openChat(userId, name, avatar, type);
+        }
+
+        function leaveGroupHandler(groupId) {
+            $.ajax({
+                url: API_URL + `/api/Group/leave/${groupId}`,
+                type: 'DELETE',
+                contentType: 'application/json',
+                success: function (result) {
+                    if (result.success) {
+                        fetchMyGroups();
+                    } else {
+                        console.error('Failed to leave group:', result.message);
+                    }
+                },
+                error: function (error) {
+                    console.error('Error removing friend:', error);
+                }
+            });
+        }
+    </script>
+}

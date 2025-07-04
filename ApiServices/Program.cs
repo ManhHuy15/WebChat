@@ -3,20 +3,27 @@ using ApiServices.Chat;
 using BusinessObjects;
 using CloudinaryDotNet;
 using DataAccess;
+using DTOs.FriendDTOs;
+using DTOs.UserDTOs;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.OData;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OData.Edm;
+using Microsoft.OData.ModelBuilder;
 using Microsoft.OpenApi.Models;
+using Repositories.FriendRepository;
 using Repositories.GroupRepository;
 using Repositories.MessageRepository;
 using Repositories.UserRepository;
 using Services.AuthenServices;
 using Services.AuthenServices.InterfaceAuthen;
 using Services.ClouldinaryServices;
+using Services.FriendServices;
 using Services.GroupServices;
 using Services.MessageServices;
 using Services.UserServices;
@@ -92,14 +99,17 @@ namespace ApiServices
             builder.Services.AddSingleton(new Cloudinary(new Account(cloudName, apiKey, apiSecret)));
 
             // Add data access object to the container.
+            builder.Services.AddScoped<BaseDAO>();
             builder.Services.AddScoped<UserDAO>();
             builder.Services.AddScoped<MessageDAO>();
             builder.Services.AddScoped<GroupDAO>();
+            builder.Services.AddScoped<FriendDAO>();
 
             // Add repositories to the container.
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IMessageRepository, MessageRepository>();
             builder.Services.AddScoped<IGroupRepository, GroupRepository>();
+            builder.Services.AddScoped<IFriendRepository, FriendRepository>();
 
             // Add services to the container.
             builder.Services.AddScoped<IJWTService, JWTService>();
@@ -109,9 +119,10 @@ namespace ApiServices
             builder.Services.AddScoped<IMessageService, MessageService>();
             builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
             builder.Services.AddScoped<IGroupService, GroupService>();
+            builder.Services.AddScoped<IFriendService, FriendService>();
             builder.Services.AddSignalR();
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers().AddOData(options => options.Select().Filter().OrderBy().Expand().Count().SetMaxTop(100));
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
