@@ -658,7 +658,7 @@
         getChatGroupDetails();
     });
 
-    function RemoveFromGroup(id){
+    function RemoveFromGroup(memberId){
         const swalWithBootstrapButtons = Swal.mixin({
                 customClass: {
                 confirmButton: "btn btn-danger m-2",
@@ -674,10 +674,29 @@
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                     console.log(id + " " + chatId.val());
-                 manageMember(chatId.val())
+                removeMemberFromGroup(chatId.val(), memberId);
             }
         });
+    }
+
+    function removeMemberFromGroup(groupId,memberId){
+		$.ajax({
+            url: `${API_URL}/api/Group/remove-member/${groupId}`,
+			method: 'DELETE',
+            data: JSON.stringify(memberId),
+			contentType: 'application/json',
+			success: function(res) {
+                if(res.success){
+
+				    manageMember(groupId);
+                }else{
+                    console.log("Remove member fails");
+                }
+			},
+			error: function(err) {
+				console.error("Error removing member:", err);
+			}
+		});
     }
 
 </script>

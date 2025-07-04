@@ -140,5 +140,20 @@ namespace ApiServices.Controllers
                 return BadRequest(ex);
             }
         }
+
+
+        [HttpDelete("remove-member/{groupId}")]
+        public async Task<IActionResult> RemoveMemberFromGroup( [FromRoute]int groupId,[FromBody] int membberId)
+        {
+            try
+            {
+                var result = await _groupService.RemoveMemberFromGroup(membberId, groupId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
     }
 }
