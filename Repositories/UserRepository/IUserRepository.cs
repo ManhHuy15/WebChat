@@ -13,7 +13,7 @@ namespace Repositories.UserRepository
     {
         Task<User> GetUser(Expression<Func<User, bool>> condition);
         Task Add(User user);
-        Task Update(User user);
+        Task<bool> Update(User user);
         Task<List<User>> AllUser();
     }
 }
