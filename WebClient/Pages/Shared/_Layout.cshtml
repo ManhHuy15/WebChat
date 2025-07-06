@@ -90,8 +90,8 @@
 </head>
 <body class="d-flex mb-0 mh-100 bg-primary-dark">
     <div class="d-flex flex-column align-items-center sidebar">
-        <div class="mt-3">
-            <img src="https://res.cloudinary.com/ddg2gdfee/image/upload/v1750643519/default_avata_dry3fp.png" alt="Avatar" class="profile-img">
+        <div class="mt-3" onclick="openMyProfile(true)">
+            <img id="sidebar-avatar" src="https://res.cloudinary.com/ddg2gdfee/image/upload/v1750643519/default_avata_dry3fp.png" alt="Avatar" class="profile-img">
         </div>
 
         <nav class="nav flex-column text-center mt-4 w-100 h-100">
@@ -117,8 +117,8 @@
             <div class="flex-grow-1"></div>
             <!-- Bottom: Settings + Logout  -->
             <div class="mb-4">
-                <a class="nav-link" href="#" onclick="openMyProfile()"><i class="bi bi-gear-fill fs-4"></i></a>
-                <a class="nav-link" href="#"><i class="bi bi-box-arrow-in-left fs-4"></i></a>
+                <a class="nav-link" href="#" onclick="openMyProfile(true)"><i class="bi bi-gear-fill fs-4"></i></a>
+                <a class="nav-link" href="#" onclick="logOut()"><i class="bi bi-box-arrow-in-left fs-4"></i></a>
             </div>
         </nav>
     </div>
@@ -285,7 +285,7 @@
     }
     var selectedContactIds = [];
     $(function() {
-
+        openMyProfile(false);
         $("#createGroupPopup").click(function() {
             getContactList("");
             selectedContactIds = [];
@@ -477,7 +477,7 @@
         selectedContactIds.length = 0;
     }
 
-    function openMyProfile() {
+    function openMyProfile(isOpen) {
         $.ajax({
             url: API_URL + "/api/User/my-profile",
             type: "GET",
@@ -492,7 +492,6 @@
                     $('#friend-count').text(user.friendCount + " friends");
                     $("#profile-email").html(user.email || '<span class="text-muted">Need update</span>');
                     settingTab.empty();
-
                     if(user.isLinkGoogle){
 						$('#linkGG').removeClass('d-none');
                     }
@@ -579,7 +578,11 @@
                         `);
                     }
 
-                    $("#my-profile").modal("show");
+					if(isOpen){
+						$('#my-profile').modal('show');
+					}else{
+                        $('#sidebar-avatar').attr('src', user.avatar);
+                    }
                 } else {
                     console.error("Error:", result.message);
                 }
@@ -588,9 +591,6 @@
                 console.error("Error:", err);
             }
         });
-
-
-        $("#my-profile").modal('show');
     }
     let isEditing = false;
     function changeInfo() {
@@ -641,7 +641,7 @@
                 success: function (response) {
                     if (response.success) {
                         changeInfo();
-                        openMyProfile();
+                        openMyProfile(true);
                     } else {
                         console.log("success: " + response.message);
                     }
@@ -741,7 +741,7 @@
 							width: 350,
 							heightAuto: true
 					    });
-                        openMyProfile();
+                        openMyProfile(true);
 					} else {
 						error.text(result.message);
 					}
@@ -807,7 +807,7 @@
                             width: 350,
                             heightAuto: true
                         });
-                        openMyProfile();
+                        openMyProfile(true);
                     } else {
                         passwordError.append(`<li>${result.message}</li>`);
                     }
@@ -818,6 +818,8 @@
                 }
             });
         }
+
+
     </script>
     @await RenderSectionAsync("Scripts", required: false)
     <script src="~/js/signalR-connection.js" asp-append-version="true"></script>
