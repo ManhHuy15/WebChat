@@ -5,6 +5,7 @@ using DTOs.FriendDTOs;
 using DTOs.UserDTOs;
 using Microsoft.IdentityModel.Tokens;
 using Repositories.UserRepository;
+using Services.AuthenServices.InterfaceAuthen;
 using Services.ClouldinaryServices;
 using System;
 using System.Collections.Generic;
@@ -19,10 +20,12 @@ namespace Services.UserServices
     {
         private readonly IUserRepository _userRepository;
         private readonly ICloudinaryService _cloudinaryService;
-        public UserService(IUserRepository userRepository, ICloudinaryService cloudinaryService )
+        private readonly IPasswordHashingService _passwordHashingService;
+        public UserService(IUserRepository userRepository, ICloudinaryService cloudinaryService, IPasswordHashingService passwordHashingService )
         {
             _userRepository = userRepository;
             _cloudinaryService = cloudinaryService;
+            _passwordHashingService = passwordHashingService;
         }
 
         public async Task<List<UserBaseDTO>> AllUser()
@@ -60,6 +63,7 @@ namespace Services.UserServices
                 FullName = user.FullName,
                 Gender = user.Gender,
                 Phone = user.Phone,
+                havePassword = user.Password != null ? true : false,
                 isLinkGoogle = !string.IsNullOrEmpty(user.GoogleId),
                 FriendCount = user.ReceiverFriendShips.Count(x => x.Status == (int)Enums.FriendShipStatus.Accepted),
             };
@@ -201,7 +205,6 @@ namespace Services.UserServices
                 status = HttpStatusCode.OK,
             };
         }
-
         public async Task<ResponseDTO<bool>> UpdateProfile(UpdateInfoUserDTO user, int myId)
         {
             var userdb = await _userRepository.GetUser(u => u.UserId == myId);
@@ -238,5 +241,90 @@ namespace Services.UserServices
                 status = HttpStatusCode.OK,
             };
         }
+
+
+        public async Task<ResponseDTO<bool>> UpdatePassword(UpdatePasswordDTO password, int myId)
+        {
+            var userdb = await _userRepository.GetUser(u => u.UserId == myId);
+            if (userdb == null)
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "User not found",
+                    success = false,
+                    status = HttpStatusCode.NotFound,
+                };
+            }
+
+            var currentPass = _passwordHashingService.HashPassword(password.CurrentPassword);
+            if (userdb.Password != currentPass)
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "Current password is incorrect",
+                    success = false,
+                    status = HttpStatusCode.OK,
+                };
+            }
+            if (!password.NewPassword.Equals(password.ConfirmPassword))
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "New password and confirm password do not match",
+                    success = false,
+                    status = HttpStatusCode.OK,
+                };
+            }
+            userdb.Password = _passwordHashingService.HashPassword(password.NewPassword);
+            var res = await _userRepository.Update(userdb);
+            return new ResponseDTO<bool>()
+            {
+                data = res,
+                message = res ? "Password updated successfully" : "Password update failed",
+                success = res,
+                status = HttpStatusCode.OK,
+            };
+        }
+
+
+        public async Task<ResponseDTO<bool>> InitPassword(InitPasswordDTO password, int myId)
+        {
+            if(!password.NewPassword.Equals(password.ConfirmPassword))
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "Password and Confirm Password do not match",
+                    success = false,
+                    status = HttpStatusCode.OK,
+                };
+            }
+
+            var userdb = await _userRepository.GetUser(u => u.UserId == myId);
+            if (userdb == null)
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "User not found",
+                    success = false,
+                    status = HttpStatusCode.NotFound,
+                };
+            }
+
+            userdb.Password = _passwordHashingService.HashPassword(password.NewPassword);
+            var res = await _userRepository.Update(userdb);
+            return new ResponseDTO<bool>()
+            {
+                data = res,
+                message = res ? "Password initialized successfully" : "Password initialization failed",
+                success = res,
+                status = HttpStatusCode.OK,
+            };
+        }
+
     }
 }

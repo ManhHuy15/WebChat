@@ -18,6 +18,7 @@ namespace Services.UserServices
         Task<ResponseDTO<bool>> UpdateProfile(UpdateInfoUserDTO user, int myId);
         Task<ResponseDTO<bool>> UpdateAvatar(UpdateAvatarDTO avatar, int myId);
         Task<ResponseDTO<bool>> UpdateName(string name, int myId);
-
+        Task<ResponseDTO<bool>> UpdatePassword(UpdatePasswordDTO password, int myId);
+        Task<ResponseDTO<bool>> InitPassword(InitPasswordDTO password, int myId);
     }
 }

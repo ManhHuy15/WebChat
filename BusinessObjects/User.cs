@@ -33,8 +33,8 @@ namespace BusinessObjects
 
         public bool? Gender { get; set; }
 
-        [Required, MaxLength(255)]
-        public string Password { get; set; }
+        [MaxLength(255)]
+        public string? Password { get; set; }
 
         public DateTime? LastActive { get; set; } 
 

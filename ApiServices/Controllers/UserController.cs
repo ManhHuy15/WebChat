@@ -124,5 +124,51 @@ namespace ApiServices.Controllers
                 return BadRequest(ex);
             }
         }
+
+        [HttpPatch("init-password")]
+        public async Task<IActionResult> InitPassword(InitPasswordDTO initPassword)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var myId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(myId))
+                {
+                    return Unauthorized();
+                }
+                var result = await _userService.InitPassword(initPassword, int.Parse(myId));
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpPatch("change-password")]
+        public async Task<IActionResult> ChangePassword(UpdatePasswordDTO updatePassword)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var myId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(myId))
+                {
+                    return Unauthorized();
+                }
+                var result = await _userService.UpdatePassword(updatePassword, int.Parse(myId));
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
     }
 }
