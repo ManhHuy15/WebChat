@@ -5,6 +5,8 @@ using DTOs.FriendDTOs;
 using DTOs.UserDTOs;
 using Microsoft.IdentityModel.Tokens;
 using Repositories.UserRepository;
+using Services.AuthenServices.InterfaceAuthen;
+using Services.ClouldinaryServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,10 +19,13 @@ namespace Services.UserServices
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-
-        public UserService(IUserRepository userRepository)
+        private readonly ICloudinaryService _cloudinaryService;
+        private readonly IPasswordHashingService _passwordHashingService;
+        public UserService(IUserRepository userRepository, ICloudinaryService cloudinaryService, IPasswordHashingService passwordHashingService )
         {
             _userRepository = userRepository;
+            _cloudinaryService = cloudinaryService;
+            _passwordHashingService = passwordHashingService;
         }
 
         public async Task<List<UserBaseDTO>> AllUser()
@@ -34,6 +39,42 @@ namespace Services.UserServices
                 FullName = x.FullName
             }).ToList();
             return result;
+        }
+
+        public async Task<ResponseDTO<MyProfileDTO>> GetMyProfile(int id)
+        {
+            var user = await _userRepository.GetUser(u => u.UserId == id);
+            if (user == null)
+            {
+                return new ResponseDTO<MyProfileDTO>()
+                {
+                    data = new MyProfileDTO(),
+                    message = "Not found",
+                    success = false,
+                    status = HttpStatusCode.BadRequest,
+                };
+            }
+
+            var result = new MyProfileDTO()
+            {
+                Avatar = user.Avatar,
+                Birth   = user.Birth,
+                Email = user.Email,
+                FullName = user.FullName,
+                Gender = user.Gender,
+                Phone = user.Phone,
+                havePassword = user.Password != null ? true : false,
+                isLinkGoogle = !string.IsNullOrEmpty(user.GoogleId),
+                FriendCount = user.ReceiverFriendShips.Count(x => x.Status == (int)Enums.FriendShipStatus.Accepted),
+            };
+            return new ResponseDTO<MyProfileDTO>()
+            {
+                data = result,
+                message = "Success",
+                success = true,
+                status = HttpStatusCode.OK,
+            };
+
         }
 
         public async Task<ResponseDTO<UserDetailDTO>> GetUserById(int userId, int myId)
@@ -91,5 +132,199 @@ namespace Services.UserServices
             };
 
         }
+
+        public async Task<ResponseDTO<bool>> UpdateAvatar(UpdateAvatarDTO avatar, int myId)
+        {
+            var userdb = await _userRepository.GetUser(u => u.UserId == myId);
+            if (userdb == null)
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "User not found",
+                    success = false,
+                    status = HttpStatusCode.NotFound,
+                };
+            }
+
+            var uploadResult = await _cloudinaryService.UpLoadFileAsync(avatar.Avatar);
+
+            if (uploadResult == null)
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "Upload avatar failed",
+                    success = false,
+                    status = HttpStatusCode.BadRequest,
+                };
+            }
+            userdb.Avatar = uploadResult.Url.ToString();
+            var res = await _userRepository.Update(userdb);
+            return new ResponseDTO<bool>()
+            {
+                data = res,
+                message = res ? "Update avatar successful" : "Update avatar failed",
+                success = res,
+                status = HttpStatusCode.OK,
+            };
+        }
+
+        public async Task<ResponseDTO<bool>> UpdateName(string name, int myId)
+        {
+            if (string.IsNullOrEmpty(name) || name.Length < 3)
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "Name must be at least 3 characters long",
+                    success = false,
+                    status = HttpStatusCode.BadRequest,
+                };
+            }
+
+            var userdb = await _userRepository.GetUser(u => u.UserId == myId);
+            if (userdb == null)
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "User not found",
+                    success = false,
+                    status = HttpStatusCode.NotFound,
+                };
+            }
+
+            userdb.FullName = name;
+            var result = await _userRepository.Update(userdb);
+            return new ResponseDTO<bool>()
+            {
+                data = result,
+                message = result ? "Update name successful" : "Update name failed",
+                success = result,
+                status = HttpStatusCode.OK,
+            };
+        }
+        public async Task<ResponseDTO<bool>> UpdateProfile(UpdateInfoUserDTO user, int myId)
+        {
+            var userdb = await _userRepository.GetUser(u => u.UserId == myId);
+            if (userdb == null)
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "User not found",
+                    success = false,
+                    status = HttpStatusCode.NotFound,
+                };
+            }
+            if (user.Birth != null)
+            {
+                userdb.Birth = user.Birth;
+            }
+            if (!string.IsNullOrEmpty(user.Phone))
+            {
+                userdb.Phone = user.Phone;
+            }
+            if (user.Gender != null)
+            {
+                userdb.Gender = user.Gender;
+            }
+
+            var res = await _userRepository.Update(userdb);
+
+            return new ResponseDTO<bool>()
+            {
+                data = res,
+                message = res ? "Update successful" : "Update failed",
+                success = res,
+                status = HttpStatusCode.OK,
+            };
+        }
+
+
+        public async Task<ResponseDTO<bool>> UpdatePassword(UpdatePasswordDTO password, int myId)
+        {
+            var userdb = await _userRepository.GetUser(u => u.UserId == myId);
+            if (userdb == null)
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "User not found",
+                    success = false,
+                    status = HttpStatusCode.NotFound,
+                };
+            }
+
+            var currentPass = _passwordHashingService.HashPassword(password.CurrentPassword);
+            if (userdb.Password != currentPass)
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "Current password is incorrect",
+                    success = false,
+                    status = HttpStatusCode.OK,
+                };
+            }
+            if (!password.NewPassword.Equals(password.ConfirmPassword))
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "New password and confirm password do not match",
+                    success = false,
+                    status = HttpStatusCode.OK,
+                };
+            }
+            userdb.Password = _passwordHashingService.HashPassword(password.NewPassword);
+            var res = await _userRepository.Update(userdb);
+            return new ResponseDTO<bool>()
+            {
+                data = res,
+                message = res ? "Password updated successfully" : "Password update failed",
+                success = res,
+                status = HttpStatusCode.OK,
+            };
+        }
+
+
+        public async Task<ResponseDTO<bool>> InitPassword(InitPasswordDTO password, int myId)
+        {
+            if(!password.NewPassword.Equals(password.ConfirmPassword))
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "Password and Confirm Password do not match",
+                    success = false,
+                    status = HttpStatusCode.OK,
+                };
+            }
+
+            var userdb = await _userRepository.GetUser(u => u.UserId == myId);
+            if (userdb == null)
+            {
+                return new ResponseDTO<bool>()
+                {
+                    data = false,
+                    message = "User not found",
+                    success = false,
+                    status = HttpStatusCode.NotFound,
+                };
+            }
+
+            userdb.Password = _passwordHashingService.HashPassword(password.NewPassword);
+            var res = await _userRepository.Update(userdb);
+            return new ResponseDTO<bool>()
+            {
+                data = res,
+                message = res ? "Password initialized successfully" : "Password initialization failed",
+                success = res,
+                status = HttpStatusCode.OK,
+            };
+        }
+
     }
 }

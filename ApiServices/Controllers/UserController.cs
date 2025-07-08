@@ -1,4 +1,5 @@
 ﻿using BusinessObjects;
+using DTOs.UserDTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
@@ -40,6 +41,128 @@ namespace ApiServices.Controllers
             {
                 var myId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 var result = await _userService.GetUserById(id, int.Parse(myId));
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpGet("my-profile")]
+        public async Task<IActionResult> GetMyProfile()
+        {
+            try
+            {
+                var myId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(myId))
+                {
+                    return Unauthorized();
+                }
+                var result = await _userService.GetMyProfile(int.Parse(myId));
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpPatch("update-profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateInfoUserDTO userUpdateDTO)
+        {
+            try
+            {
+                var myId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(myId))
+                {
+                    return Unauthorized();
+                }
+                var result = await _userService.UpdateProfile(userUpdateDTO, int.Parse(myId));
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpPatch("update-avatar")]
+        public async Task<IActionResult> UpdateAvatar(UpdateAvatarDTO user)
+        {
+            try
+            {
+                var myId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(myId))
+                {
+                    return Unauthorized();
+                }
+                var result = await _userService.UpdateAvatar(user, int.Parse(myId));
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpPatch("update-name")]
+        public async Task<IActionResult> UpdateName([FromBody] string fullName)
+        {
+            try
+            {
+                var myId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(myId))
+                {
+                    return Unauthorized();
+                }
+                var result = await _userService.UpdateName(fullName, int.Parse(myId));
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpPatch("init-password")]
+        public async Task<IActionResult> InitPassword(InitPasswordDTO initPassword)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var myId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(myId))
+                {
+                    return Unauthorized();
+                }
+                var result = await _userService.InitPassword(initPassword, int.Parse(myId));
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpPatch("change-password")]
+        public async Task<IActionResult> ChangePassword(UpdatePasswordDTO updatePassword)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var myId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(myId))
+                {
+                    return Unauthorized();
+                }
+                var result = await _userService.UpdatePassword(updatePassword, int.Parse(myId));
                 return Ok(result);
             }
             catch (Exception ex)
