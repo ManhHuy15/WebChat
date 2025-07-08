@@ -44,10 +44,17 @@ namespace Repositories.MessageRepository
 
         public Task<List<Message>> GetAllMessagesInGroup(int groupId) => _messageDAO.GetListMessageByCondition(x => x.GroupId == groupId).ToListAsync();
 
-        public Task<List<Message>> GetMessagesFileInGroup(int groupId) 
-            => _messageDAO.GetListMessageByCondition(x => x.GroupId == groupId && (x.Type == (int) Enums.MessageType.Video 
+        public async Task<List<Message>> GetMessagesFileInGroup(int groupId) 
+            => await _messageDAO.GetListMessageByCondition(x => x.GroupId == groupId && (x.Type == (int) Enums.MessageType.Video 
                                                                                 || x.Type == (int)Enums.MessageType.Image
                                                                                 || x.Type == (int)Enums.MessageType.File
                                                                                 || x.Type == (int)Enums.MessageType.Audio)).ToListAsync();
+
+        public async Task<List<Message>> GetUserMessageFile(int userId, int receiverId)
+        {
+            return await _messageDAO.GetListMessageByCondition(x =>(
+                    (x.SenderId == userId && x.ReceiverId == receiverId) || (x.SenderId == receiverId && x.ReceiverId == userId )) 
+                    && x.Type != (int)Enums.MessageType.Text ).ToListAsync();
+        }
     }
 }
