@@ -86,5 +86,21 @@ namespace ApiServices.Controllers
                 return BadRequest(ex);
             }
         }
+
+        [HttpGet("get-user-message-file/{friendId}")]
+        public async Task<IActionResult> GetUserMessageFiles(int friendId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            try
+            {
+                var result = await _messageService.GetUserMessageFile(int.Parse(userId), friendId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
     }
 }

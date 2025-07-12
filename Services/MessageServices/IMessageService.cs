@@ -15,8 +15,8 @@ namespace Services.MessageServices
 
         Task<ResponseDTO<List<MessageUserDTO>>> GetAllMessagesUser(int userId, int receiverId);
         Task<ResponseDTO<List<MessageGroupDTO>>> GetAllMessagesInGroup(int groupId);
-
         Task<ResponseDTO<string>> SendMessage(int userId,int type, SendMessageDTO message);
+        Task<ResponseDTO<List<MessageUserDTO>>> GetUserMessageFile(int userId, int receiverId);
 
     }
 }

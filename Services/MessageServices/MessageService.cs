@@ -197,6 +197,49 @@ namespace Services.MessageServices
             };
         }
 
+
+        public async Task<ResponseDTO<List<MessageUserDTO>>> GetUserMessageFile(int userId, int receiverId)
+        {
+            var messages = await _messageRepository.GetUserMessageFile(userId, receiverId);
+
+            if (messages == null || !messages.Any())
+            {
+                return new ResponseDTO<List<MessageUserDTO>>
+                {
+                    status = HttpStatusCode.OK,
+                    message = "No messages found",
+                    success = false,
+                    data = new List<MessageUserDTO>()
+                };
+            }
+
+            var result = messages.Select(x => new MessageUserDTO
+            {
+                Content = x.Content,
+                SentAt = x.SentAt,
+                Type = x.Type,
+                Sender = new UserBaseDTO
+                {
+                    FullName = x.Sender.FullName,
+                    Avatar = x.Sender.Avatar
+                },
+                Receiver = new UserBaseDTO
+                {
+                    UserId = x.ReceiverId,
+                    FullName = x.Receiver.FullName,
+                    Avatar = x.Receiver.Avatar
+                },
+            }).ToList();
+
+            return new ResponseDTO<List<MessageUserDTO>>
+            {
+                status = HttpStatusCode.OK,
+                message = "Get user message files success",
+                success = true,
+                data = result
+            };
+        }
+
         public async Task<ResponseDTO<string>> SendMessage(int userId,int type, SendMessageDTO message)
         {
             List<Message> messages = new List<Message>();

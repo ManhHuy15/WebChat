@@ -218,12 +218,12 @@ function renderMessageBubble(item, reciverId) {
                             ${item.content}
                         </div>`;
         case 1:
-            return `<div class=" text-break ${item.receiver.userId == reciverId ? 'my-file-bubble' : 'other-file-bubble'}">
+            return `<div class=" text-break cursor-pointer ${item.receiver.userId == reciverId ? 'my-file-bubble' : 'other-file-bubble'}" onclick="OpenFile('${item.content}','${item.type}')">
                             <img src="${item.content}"  class="m-h-12" alt="Image">
                         </div>`;
         case 2:
-            return `<div class=" text-break ${item.receiver.userId == reciverId ? 'my-file-bubble' : 'other-file-bubble'}">
-                    <video controls="controls" class="m-h-12" >
+            return `<div class="text-break cursor-pointer ${item.receiver.userId == reciverId ? 'my-file-bubble' : 'other-file-bubble'}" onclick="OpenFile('${item.content}','${item.type}')">
+                    <video  class="m-h-12" >
                         <source src="${item.content}"   type="video/mp4" />
                     </video>
                 </div>`;
@@ -301,13 +301,13 @@ function renderMessageGroupBubble(item, myId) {
                             ${item.content}
                         </div>`;
         case 1:
-            return `<div class=" text-break ${item.sender.userId == myId ? 'my-file-bubble' : 'other-file-bubble'}">
+            return `<div class=" text-break cursor-pointer ${item.sender.userId == myId ? 'my-file-bubble' : 'other-file-bubble'}" onclick="OpenFile('${item.content}','${item.type}')">
                             <img src="${item.content}"  class="m-h-12" alt="Image">
                         </div>`;
         case 2:
-            return `<div class=" text-break ${item.sender.userId == myId ? 'my-file-bubble' : 'other-file-bubble'}">
-                    <video controls="controls" class="m-h-12" >
-                        <source src="${item.content}"   type="video/mp4" />
+            return `<div class=" text-break cursor-pointer ${item.sender.userId == myId ? 'my-file-bubble' : 'other-file-bubble'}" onclick="OpenFile('${item.content}','${item.type}')">
+                    <video class="m-h-12" >
+                        <source src="${item.content}"  type="video/mp4" />
                     </video>
                 </div>`;
         case 3:
@@ -408,3 +408,31 @@ $('#preview-wrapper').on('click', '.btn-remove-file', function () {
     selectedFiles.splice(index, 1);
     renderPreviews();
 });
+
+function OpenFile(url, type) {
+    console.log("File type: " + type);
+
+    let contentHtml = '';
+    if (type === '1') {
+        contentHtml = `
+                <img src="${url}"
+                        style="max-width: 100vw; max-height: 100vh; object-fit: contain;"
+                        class="img-fluid  bg-dark"
+                        alt="Image" />
+            `;
+    } else if (type === '2') {
+        contentHtml = `
+                <video src="${url}"
+                        style="max-width: 100vw; max-height: 100vh; object-fit: contain;"
+                        class="img-fluid  bg-dark"
+                        controls autoplay></video>
+            `;
+    } else {
+        return;
+    }
+
+    const modalContent = $('#view-full-file');
+    modalContent.empty().append(contentHtml);
+
+    $("#file-viewer-modal").modal("show");
+}
