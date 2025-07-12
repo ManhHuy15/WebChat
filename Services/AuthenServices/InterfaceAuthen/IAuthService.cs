@@ -14,10 +14,13 @@ namespace Services.AuthenServices.InterfaceAuthen
     {
         Task<ResponseDTO<UserLoginResponseDTO>> LoginHandler(UserLoginRequestDTO loginRequestDTOs);
 
-        Task<ResponseDTO<string>> RegisterHandler(RegisterUserDTO registerUserDTOs);
+        Task<ResponseDTO<RegisterResponseDTO>> RegisterHandler(RegisterUserDTO registerUserDTOs);
 
         Task<ResponseDTO<UserLoginResponseDTO>> SignInGoogle(AuthenticateResult authenticateResult);
 
         Task<ResponseDTO<UserLoginResponseDTO>> RefreshToken(string refreshToken);
+        Task<ResponseDTO<string>> VerifyOTP(VerifyOTPRequestDTO verifyOTP);
+
+        Task<ResponseDTO<RegisterResponseDTO>> ResendOTP(string email);
     }
 }

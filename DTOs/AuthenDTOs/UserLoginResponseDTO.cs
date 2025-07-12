@@ -13,5 +13,7 @@ namespace DTOs.AuthenDTOs
         public string? AccessToken { get; set; }
         public string? RefreshToken { get; set; }
         public int TokenExpires { get; set; }
+        public bool? IsActive { get; set; }
+        public DateTime? OtpExpires { get; set; }
     }
 }

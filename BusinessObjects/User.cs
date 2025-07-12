@@ -26,9 +26,6 @@ namespace BusinessObjects
         [Required, MaxLength(150)]
         public string Email { get; set; }
 
-        [MaxLength(150)]
-        public string? UserName { get; set; }
-
         public DateOnly? Birth { get; set; }
 
         public bool? Gender { get; set; }
@@ -47,6 +44,11 @@ namespace BusinessObjects
         public DateTime? TokenExpires { get; set; }
 
         public bool IsActive { get; set; }
+
+        [MaxLength(4)]
+        public string? Otp { get; set; }
+
+        public DateTime? OtpExpires { get; set; }
 
         public virtual ICollection<FriendShip> SenderFriendShips { get; set; } = new List<FriendShip>();
         public virtual ICollection<FriendShip> ReceiverFriendShips { get; set; } = new List<FriendShip>();

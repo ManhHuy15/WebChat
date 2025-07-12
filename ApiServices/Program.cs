@@ -3,6 +3,7 @@ using ApiServices.Chat;
 using BusinessObjects;
 using CloudinaryDotNet;
 using DataAccess;
+using DTOs.EmailDTOs;
 using DTOs.FriendDTOs;
 using DTOs.UserDTOs;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -23,6 +24,7 @@ using Repositories.UserRepository;
 using Services.AuthenServices;
 using Services.AuthenServices.InterfaceAuthen;
 using Services.ClouldinaryServices;
+using Services.EmailServices;
 using Services.FriendServices;
 using Services.GroupServices;
 using Services.MessageServices;
@@ -41,6 +43,7 @@ namespace ApiServices
             var cloudName = configuration.GetValue<string>("CloudinaryAccount:CloudName");
             var apiKey = configuration.GetValue<string>("CloudinaryAccount:ApiKey");
             var apiSecret = configuration.GetValue<string>("CloudinaryAccount:ApiSecret");
+            var gmailSetting = configuration.GetSection(GmailSettings.GmailSettingsKey).Get<GmailSettings>();
 
             builder.Services.AddAuthentication(options =>
             {
@@ -113,6 +116,8 @@ namespace ApiServices
 
             // Add services to the container.
             builder.Services.AddScoped<IJWTService, JWTService>();
+            builder.Services.AddSingleton<GmailSettings>(gmailSetting);
+            builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
             builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IUserService, UserService>();
@@ -120,6 +125,7 @@ namespace ApiServices
             builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
             builder.Services.AddScoped<IGroupService, GroupService>();
             builder.Services.AddScoped<IFriendService, FriendService>();
+            
             builder.Services.AddSignalR();
 
             builder.Services.AddControllers().AddOData(options => options.Select().Filter().OrderBy().Expand().Count().SetMaxTop(100));

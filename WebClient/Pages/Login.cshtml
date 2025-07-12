@@ -1,5 +1,4 @@
 ﻿@page
-
 @model WebClient.Pages.LoginModel
 @{
     Layout = "_EmptyLayout";
@@ -98,6 +97,12 @@
                             window.location.href = "/";
                         }else{
                             $('#error').text(result.message);
+                             var data = result.data;
+                             if(data){
+                                if(!data.isActive){
+                                    window.location.href = `/verify?email=${data.email}&expires=${data.otpExpires}`;
+								}
+                             }
                         }
                     },
                     error: function (error) {
