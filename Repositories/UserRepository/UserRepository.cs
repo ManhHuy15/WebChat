@@ -21,7 +21,7 @@ namespace Repositories.UserRepository
         public async Task<User> GetUser(Expression<Func<User, bool>> condition) => await _userDAO.GetUserByCondition(condition);
 
         public Task Add(User user) => _userDAO.Add(user);
-        public Task Update(User user) => _userDAO.Update(user);
+        public Task<bool> Update(User user) => _userDAO.Update(user);
 
         public Task<List<User>> AllUser() => _userDAO.GetAll();
     }

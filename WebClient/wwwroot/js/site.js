@@ -31,3 +31,25 @@ function showNotification(message) {
     }, 3000);
 }
 
+function logOut() {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You will be logged out!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, log out!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            localStorage.removeItem('refresh-token');
+            localStorage.removeItem('access-token');
+            localStorage.removeItem('email');
+            localStorage.removeItem('expires');
+            localStorage.removeItem('id');
+            window.location.href = '/login';
+            window.location.href = '/';
+        }
+    });
+}
+

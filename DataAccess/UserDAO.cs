@@ -44,15 +44,17 @@ namespace DataAccess
             }
         }
 
-        public async Task Update(User user)
+        public async Task<bool> Update(User user)
         {
             try
             {
                 _context.Entry<User>(user).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                 await _context.SaveChangesAsync();
+                return true;
             }
             catch (Exception ex)
             {
+                return false;
                 throw new Exception(ex.Message);
             }
         }

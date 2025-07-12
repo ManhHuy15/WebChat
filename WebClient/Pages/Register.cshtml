@@ -1,9 +1,6 @@
 ﻿@page
 @model WebClient.Pages.RegisterModel
 @{
-}
-
-@{
    Layout = "_EmptyLayout";
 }
 
@@ -28,15 +25,15 @@
                     <div class="card-body pt-5 pb-4 px-md-5">
                         <h2>Create new account</h2>
                         <form method="post" id="registerForm">
-                            <div data-mdb-input-init class="form-outline mb-3">
+                            <div data-mdb-input-init class="mb-3">
                                 <label class="form-label" for="fullName"></label>
                                 <input type="text" id="fullName" asp-for="RegisterUser.FullName" class="form-control" placeholder="Full name" />
                                 <span asp-validation-for="RegisterUser.FullName" class="text-danger"></span>
                             </div>
                             <div class="row mb-4">
-                                <div data-mdb-input-init class="form-outline col-md-6  me-4">
+                                <div data-mdb-input-init class="col-md-6  me-4">
                                     <label class="form-label" for="birth">Date of birth</label>
-                                    <input type="date" id="birth" asp-for="RegisterUser.Birth"  class="form-control" placeholder="Date of birth" />
+                                    <input type="date" id="birth" asp-for="RegisterUser.Birth" class="form-control opacity-100" placeholder="Date of birth"  />
 									<span asp-validation-for="RegisterUser.Birth" class="text-danger"></span>
                                 </div>
                                 <div class="col-md-6 row">
@@ -57,17 +54,17 @@
                                 </div>
                             </div>
                                 
-                            <div data-mdb-input-init class="form-outline mb-4">
+                            <div data-mdb-input-init class=" mb-4">
                                 <input type="email" id="email" asp-for="RegisterUser.Email" class="form-control" placeholder="Email" />
 								<span asp-validation-for="RegisterUser.Email" id="email_error" class="text-danger"></span>
                             </div>
 
-                            <div data-mdb-input-init class="form-outline mb-4">
+                            <div data-mdb-input-init class=" mb-4">
                                 <input type="password" id="password" asp-for="RegisterUser.Password" class="form-control" placeholder="Password" />
 								<span asp-validation-for="RegisterUser.Password" class="text-danger"></span>
                             </div>
 
-                            <div data-mdb-input-init class="form-outline mb-4">
+                            <div data-mdb-input-init class=" mb-4">
                                 <input type="password" id="confirm_password" class="form-control" placeholder="Confirm Password" />
 								<span id="confirm_password_error" class="text-danger"></span>
                             </div>
@@ -77,7 +74,7 @@
                             </button>
 
                             <div class="text-center mt-5">
-                                <span> <a href="/login">All ready have an account ?</a></span>
+                                <span> <a href="/login">Already have an account ?</a></span>
                             </div>
                         </form>
                     </div>

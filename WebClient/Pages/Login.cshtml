@@ -25,12 +25,12 @@
                     <div class="card-body py-5 px-md-5">
                         <h2 class="fw-bold mb-3">Login</h2>
                         <form id="formLogin" method="post">
-                            <div data-mdb-input-init class="form-outline  mb-3">
+                            <div data-mdb-input-init class=" mb-3">
                                 <input type="email" asp-for="loginUser.Email" id="email" class="form-control p-3 " autocomplete="on" placeholder="Email" />
                                 <span asp-validation-for="loginUser.Email" id="error-email" class="text-danger" />
                             </div>
 
-                            <div data-mdb-input-init class="form-outline mb-3">
+                            <div data-mdb-input-init class="mb-3">
                                 <input type="password" asp-for="loginUser.Password" id="password" class="form-control p-3 " autocomplete="on" placeholder="Password" />
                                 <span asp-validation-for="loginUser.Password" id="error-password" class="text-danger" />
                             </div>

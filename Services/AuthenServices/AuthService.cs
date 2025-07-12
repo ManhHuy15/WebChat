@@ -137,7 +137,6 @@ namespace Services.AuthenServices
                     FullName = name,
                     Email = email,
                     Avatar = AVATAR_DEFAULT,
-                    Password = _passwordHashingService.HashPassword(id),
                     Role = (int)Enums.Role.User,
                     GoogleId = id,
                     IsActive = true,
