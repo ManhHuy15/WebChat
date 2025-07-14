@@ -147,5 +147,41 @@ namespace ApiServices.Authen
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPost("forgot-send-otp")]
+        public async Task<IActionResult> ForgotSendOtp([FromBody] string email)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email))
+                {
+                    return BadRequest("Email is required.");
+                }
+                var user = await _authService.ForgotSendOtp(email);
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO resetPassword)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var response = await _authService.ResetPassword(resetPassword);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

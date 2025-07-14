@@ -22,5 +22,7 @@ namespace Services.AuthenServices.InterfaceAuthen
         Task<ResponseDTO<string>> VerifyOTP(VerifyOTPRequestDTO verifyOTP);
 
         Task<ResponseDTO<RegisterResponseDTO>> ResendOTP(string email);
+        Task<ResponseDTO<RegisterResponseDTO>> ForgotSendOtp(string email);
+        Task<ResponseDTO<string>> ResetPassword(ResetPasswordDTO resetPassword);
     }
 }

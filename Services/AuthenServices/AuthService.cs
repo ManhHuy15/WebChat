@@ -272,8 +272,6 @@ namespace Services.AuthenServices
                 };
             }
             user.IsActive = true;
-            user.Otp = null;
-            user.OtpExpires = null;
             await _userRepository.Update(user);
             return new ResponseDTO<string>
             {
@@ -296,15 +294,15 @@ namespace Services.AuthenServices
                 };
             }
 
-            if (user.IsActive)
-            {
-                return new ResponseDTO<RegisterResponseDTO>
-                {
-                    status = HttpStatusCode.BadRequest,
-                    success = false,
-                    message = "User is already active."
-                };
-            }
+            //if (user.IsActive)
+            //{
+            //    return new ResponseDTO<RegisterResponseDTO>
+            //    {
+            //        status = HttpStatusCode.BadRequest,
+            //        success = false,
+            //        message = "User is already active."
+            //    };
+            //}
 
             if (user.OtpExpires > DateTime.Now)
             {
@@ -360,6 +358,113 @@ namespace Services.AuthenServices
                     message = "Failed to send OTP email. Please try again later."
                 };
             }
+        }
+
+        public  async Task<ResponseDTO<RegisterResponseDTO>> ForgotSendOtp(string email)
+        {
+            var user = await _userRepository.GetUser(u => u.Email == email);
+            if (user == null)
+            {
+                return new ResponseDTO<RegisterResponseDTO>
+                {
+                    status = HttpStatusCode.BadRequest,
+                    success = false,
+                    message = "User not found."
+                };
+            }
+
+            if (!user.IsActive)
+            {
+                return new ResponseDTO<RegisterResponseDTO>
+                {
+                    status = HttpStatusCode.BadRequest,
+                    success = false,
+                    message = "User is not active."
+                };
+            }
+
+            var random = new Random();
+            var otp = random.Next(1000, 10000).ToString();
+            DateTime otpExpires = DateTime.Now.AddMinutes(5);
+
+            user.Otp = otp;
+            user.OtpExpires = otpExpires;
+            await _userRepository.Update(user);
+            try
+            {
+                await _emailSenderService.SendEmailAsync(new EmailSenderDTO()
+                {
+                    Recipient = user.Email,
+                    Subject = "Your OTP Code for Registration",
+                    Body = $"Your OTP code is: {otp}. It will expire in 5 minutes."
+                });
+
+                return new ResponseDTO<RegisterResponseDTO>
+                {
+                    status = HttpStatusCode.OK,
+                    success = true,
+                    message = "OTP resent successfully.",
+                    data = new RegisterResponseDTO
+                    {
+                        Email = user.Email,
+                        OtpExpires = otpExpires
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to send OTP email: {ex.Message}");
+                return new ResponseDTO<RegisterResponseDTO>
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    success = false,
+                    message = "Failed to send OTP email. Please try again later."
+                };
+            }
+        }
+
+        public async Task<ResponseDTO<string>> ResetPassword(ResetPasswordDTO resetPassword)
+        {
+            if (!resetPassword.NewPassword.Equals(resetPassword.ConfirmPassword))
+            {
+                return new ResponseDTO<string>
+                {
+                    status = HttpStatusCode.BadRequest,
+                    success = false,
+                    message = "Password not match"
+                };
+            }
+            var user = await _userRepository.GetUser(u => u.Email == resetPassword.Email);
+            if (user == null)
+            {
+                return new ResponseDTO<string>
+                {
+                    status = HttpStatusCode.BadRequest,
+                    success = false,
+                    message = "User not found."
+                };
+            }
+
+            if (user.Otp != resetPassword.Otp)
+            {
+                return new ResponseDTO<string>
+                {
+                    status = HttpStatusCode.BadRequest,
+                    success = false,
+                    message = "Invalid OTP."
+                };
+            }
+
+            user.Password = _passwordHashingService.HashPassword(resetPassword.NewPassword);
+            user.Otp = null;
+            user.OtpExpires = null;
+            await _userRepository.Update(user);
+            return new ResponseDTO<string>
+            {
+                status = HttpStatusCode.OK,
+                success = true,
+                message = "Password reset successfully."
+            };
         }
     }
 }
