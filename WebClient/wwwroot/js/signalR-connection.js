@@ -37,7 +37,7 @@ $(function () {
         connection.start()
         .then(() => {
             console.log("SignalR Successfully Connected")
-                getMyGroups();
+                //getMyGroups();
         })
         .catch((err) => {
             console.error("SignalR Connection Error: ", err);
@@ -48,22 +48,22 @@ $(function () {
 
     }
     
-    function getMyGroups() {
-        $.ajax({
-            url: "http://localhost:5050/api/Group/my-group",
-            method: "GET",
-            success: async function (response) {
-                if (response.status == 200) {
-                    for (var i = 0; i < response.data.length; i++) {
-                        await connection.invoke("JoinGroup", response.data[i].name);
-                    }
-                }
-            },
-            error: function (response) {
-                console.log(response);
-            }
-        })
-    }
+    //function getMyGroups() {
+    //    $.ajax({
+    //        url: "http://localhost:5050/api/Group/my-group",
+    //        method: "GET",
+    //        success: async function (response) {
+    //            if (response.status == 200) {
+    //                for (var i = 0; i < response.data.length; i++) {
+    //                    await connection.invoke("JoinGroup", response.data[i].name);
+    //                }
+    //            }
+    //        },
+    //        error: function (response) {
+    //            console.log(response);
+    //        }
+    //    })
+    //}
 
     if (IsLogin()) {
         console.log("User is logged in");
