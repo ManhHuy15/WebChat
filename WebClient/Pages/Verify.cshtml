@@ -1,0 +1,311 @@
+﻿@page
+@model WebClient.Pages.VerifyModel
+@{
+}
+
+@{
+    Layout = "_EmptyLayout";
+}
+
+<style>
+    .title {
+        font-size: 25px;
+        margin-bottom: 30px;
+    }
+
+    #otp-form {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #otp-form input {
+        border: none;
+        font-size: 28px;
+        text-align: center;
+        padding: 10px;
+        width: 100%;
+        max-width: 50px;
+        height: 50px;
+        border-radius: 4px;
+        outline: 2px solid rgb(66, 66, 66);
+    }
+
+    #otp-form input:focus-visible {
+        outline: 2px solid royalblue;
+    }
+
+    #otp-form input.filled {
+        outline: 2px solid rgb(7, 192, 99);
+    }
+
+    #verify-btn {
+        cursor: pointer;
+        display: inline-block;
+        margin-top: 30px;
+        background: royalblue;
+        color: white;
+        padding: 7px 10px;
+        border-radius: 4px;
+        font-size: 16px;
+        border: none;
+    }
+
+</style>
+<div class="px-4 py-5 px-md-5 text-center text-lg-start min-vh-100" style="background-color: hsl(0, 0%, 96%)">
+    <div class="container">
+        <div class="row gx-lg-5 align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <h1 class="my-5 display-3 fw-bold ls-tight">
+                    The best offer <br />
+                    <span class="text-primary">for your business</span>
+                </h1>
+                <p style="color: hsl(217, 10%, 50.8%)">
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                    Eveniet, itaque accusantium odio, soluta, corrupti aliquam
+                    quibusdam tempora at cupiditate quis eum maiores libero
+                    veritatis? Dicta facilis sint aliquid ipsum atque?
+                </p>
+            </div>
+
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <div class="card">
+                    <div class="card-body py-5 px-md-5">
+                        <h2 class="fw-bold mb-3">Verify OTP</h2>
+                        <section>
+                            <div class="container">
+                                <div class="d-flex justify-content-center">
+                                    <form id="otp-form">
+                                        <input type="text" class="otp-input" maxlength="1">
+                                        <input type="text" class="otp-input" maxlength="1">
+                                        <input type="text" class="otp-input" maxlength="1">
+                                        <input type="text" class="otp-input" maxlength="1">
+                                    </form>
+                                    <div>
+                                        <button class="btn bg-transparent shadow-none rounded-circle" onclick="Resend()">
+                                            <i class="fa-solid fa-repeat fs-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <strong>Expire in: </strong> <span id="expire"></span>
+                                </div>
+                                <button id="verify-btn" data-mdb-button-init data-mdb-ripple-init 
+                                    class="btn btn-primary btn-block w-100 fs-5 fw-bolder my-3">Verify OTP</button>
+                                <span id="error" class="text-danger"></span>
+                            </div>
+                        </section>
+                        <div class="text-center mt-3">
+                            <span>Don't have an account ? <a href="/register">Register</a></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script type="text/javascript">
+        const params = new URLSearchParams(window.location.search);
+        const email = params.get("email");
+        let expires = params.get("expires");
+        var isForgot = params.get("isforgot");
+        let expireTime;
+        let timer;
+
+        $(document).ready(function () {
+            if (!email || !expires) {
+                window.location.href = "/register";
+                return;
+            }
+
+            setExpireTime(expires);
+
+            updateCountdown();
+            timer = setInterval(updateCountdown, 1000);
+        });
+
+        function setExpireTime(expiresString) {
+            const dateMatch = expiresString.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
+            const fixedExpires = dateMatch ? dateMatch[1] : null;
+
+            if (!fixedExpires) {
+                console.error("Invalid expires format.");
+                window.location.href = "/register";
+                return;
+            }
+
+            expireTime = new Date(fixedExpires).getTime();
+        }
+
+        window.updateCountdown = function () {
+            const now = new Date().getTime();
+            const distance = expireTime - now;
+
+            if (distance <= 0) {
+                clearInterval(timer);
+                $("#expire").addClass("text-danger").text("Expired");
+                return;
+            }
+
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            $("#expire").text(`${minutes}m ${seconds}s`);
+        }
+
+        const $inputs = $(".otp-input");
+
+        const isAllInputFilled = () => {
+            return $inputs.toArray().every((item) => item.value);
+        };
+
+        const getOtpText = () => {
+            let text = "";
+            $inputs.each(function () {
+                text += this.value;
+            });
+            return text;
+        };
+
+        const toggleFilledClass = (field) => {
+            if (field.value) {
+                field.classList.add("filled");
+            } else {
+                field.classList.remove("filled");
+            }
+        };
+
+        $inputs.on("input", function (e) {
+            const value = this.value;
+            toggleFilledClass(this);
+            if (value && this.nextElementSibling && $(this.nextElementSibling).hasClass("otp-input")) {
+                this.nextElementSibling.focus();
+            }
+        });
+
+        $inputs.on("paste", function (e) {
+            e.preventDefault();
+            const text = (e.originalEvent || e).clipboardData.getData("text");
+            for (let i = 0; i < $inputs.length; i++) {
+                if (i >= $inputs.index(this) && text[i - $inputs.index(this)]) {
+                    $inputs.eq(i).val(text[i - $inputs.index(this)]).focus();
+                    toggleFilledClass($inputs[i]);
+                } else if (i >= $inputs.index(this)) {
+                    $inputs.eq(i).val("");
+                    toggleFilledClass($inputs[i]);
+                }
+            }
+        });
+
+        $inputs.on("keydown", function (e) {
+            if (e.key === "Backspace") {
+                e.preventDefault();
+                $(this).val("");
+                toggleFilledClass(this);
+                const $prev = $inputs.eq($inputs.index(this) - 1);
+                if ($prev.length) {
+                    $prev.focus();
+                }
+            }
+        });
+
+        $inputs.each(function () {
+            toggleFilledClass(this);
+        });
+
+        $("#verify-btn").on("click", () => {
+            if (isAllInputFilled()) {
+               const text = getOtpText();
+               verifyOtp(text);
+            }
+        });
+
+        function verifyOtp(otp){
+            $.ajax({
+                url: 'http://localhost:5050/api/auth/verify',
+                type: 'POST',
+				contentType: 'application/json',
+				data: JSON.stringify({
+					email: email,
+					otp: otp
+				}),
+				success: function (result) {
+					if (result.status === 200) {
+                        if(isForgot){
+                            localStorage.setItem('email', email);
+                            localStorage.setItem('otp', otp);
+                            window.location.href = "/resetpassword";
+                        }else{
+						    window.location.href = "/login";
+                        }
+					} else {
+						$("#error").text(result.message || "Verification failed. Please try again.");
+					}
+				},
+				error: function (error) {
+					console.error("Error during OTP verification:", error);
+					alert("An error occurred. Please try again later.");
+				}
+            });
+        }
+
+        function Resend(){
+			const params = new URLSearchParams(window.location.search);
+			const email = params.get("email");
+			if (!email) {
+				alert("Email is required to resend OTP.");
+				return;
+			}
+			$.ajax({
+				url: 'http://localhost:5050/api/auth/resend-otp',
+				type: 'POST',
+				contentType: 'application/json',
+				data: JSON.stringify(email),
+                success: function (result) {
+                    if (result.status === 200) {
+                        const data = result.data;
+                        expires = data.otpExpires;
+                        setExpireTime(expires);
+
+                        const url = new URL(window.location.href);
+                        url.searchParams.set("expires", decodeURIComponent(expires));
+                        window.history.replaceState({}, '', url);
+
+                        $inputs.val("").removeClass("filled").first().focus();
+
+                        clearInterval(timer);
+                        updateCountdown();
+                        timer = setInterval(updateCountdown, 1000);
+
+                        $("#expire").removeClass("text-danger");
+                        $("#error").text("");
+                    } else {
+                        $("#error").text(result.message || "Failed to resend OTP. Please try again.");
+                        const data = result.data;
+                        
+                        if (data && data.otpExpires) {
+                            expires = data.otpExpires;
+                            setExpireTime(expires);
+                            const url = new URL(window.location.href);
+                            url.searchParams.set("expires", decodeURIComponent(expires));
+                            window.history.replaceState({}, '', url);
+                            $inputs.val("").removeClass("filled").first().focus();
+                            clearInterval(timer);
+                            updateCountdown();
+                            timer = setInterval(updateCountdown, 1000);
+                            $("#expire").removeClass("text-danger");
+                        }
+                    }
+                },
+				error: function (error) {
+					console.error("Error during OTP resend:", error);
+					alert("An error occurred while resending the OTP. Please try again later.");
+				}
+			});
+        }
+    </script>
+}

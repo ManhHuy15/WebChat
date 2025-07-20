@@ -1,5 +1,4 @@
 ﻿@page
-
 @model WebClient.Pages.LoginModel
 @{
     Layout = "_EmptyLayout";
@@ -38,6 +37,9 @@
                             <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block w-100 fs-4 fw-bolder my-2" onclick="HandlerSubmit()">
                                 Log in
                             </button>
+                            <div class="text-end mt-2">
+                                <span><a href="/forgot">Forgot password ?</a></span>
+                            </div>
                             <span id="error" class="text-danger"></span>
                         </form>
                         <hr class="my-4">
@@ -92,12 +94,18 @@
                         if(result.status == 200){
                             localStorage.setItem('refresh-token', result.data.refreshToken);
                             localStorage.setItem('access-token', result.data.accessToken);
-                            localStorage.setItem('email', JSON.stringify(result.data.email));
+                            localStorage.setItem('email', result.data.email);
                             localStorage.setItem('id', result.data.userId);
                             localStorage.setItem('expires', result.data.TokenExpires);
                             window.location.href = "/";
                         }else{
                             $('#error').text(result.message);
+                             var data = result.data;
+                             if(data){
+                                if(!data.isActive){
+                                    window.location.href = `/verify?email=${data.email}&expires=${data.otpExpires}`;
+								}
+                             }
                         }
                     },
                     error: function (error) {

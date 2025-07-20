@@ -1,0 +1,14 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DTOs.AuthenDTOs
+{
+    public class RegisterResponseDTO
+    {
+        public string Email { get; set; }
+        public DateTime? OtpExpires { get; set; }
+    }
+}

@@ -1,0 +1,109 @@
+﻿@page
+@model WebClient.Pages.ForgotModel
+@{
+    Layout = "_EmptyLayout";
+}
+
+<div class="px-4 py-5 px-md-5 text-center text-lg-start min-vh-100" style="background-color: hsl(0, 0%, 96%)">
+    <div class="container">
+        <div class="row gx-lg-5 align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <h1 class="my-5 display-3 fw-bold ls-tight">
+                    The best offer <br />
+                    <span class="text-primary">for your business</span>
+                </h1>
+                <p style="color: hsl(217, 10%, 50.8%)">
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                    Eveniet, itaque accusantium odio, soluta, corrupti aliquam
+                    quibusdam tempora at cupiditate quis eum maiores libero
+                    veritatis? Dicta facilis sint aliquid ipsum atque?
+                </p>
+            </div>
+
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <div class="card">
+                    <div class="card-body py-5 px-md-5">
+                        <h2 class="fw-bold mb-3">Forgot password</h2>
+                            <form id="forgotForm">
+                                <div data-mdb-input-init class=" mb-3">
+                                    <input type="email"  id="email" class="form-control p-3 " autocomplete="on" placeholder="Email" />
+                                    <span id="error-email" class="text-danger" />
+                                </div>
+
+                                <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block w-100 d-flex justify-content-center fs-4 fw-bolder my-2" onclick="HandlerSubmit()">
+                                    Send
+                                    <div id="loading-spinner" class="text-center ms-2" style="display: none;">
+                                        <div class="spinner-border text-secondary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </button>
+                                <span id="error" class="text-danger"></span>
+                            </form>
+                        <hr class="my-4">
+                        <div class="text-center mt-3">
+                            <span>Don't have an account ? <a href="/register">Register</a></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@section Scripts {
+    <script>
+        function HandlerSubmit(){
+            $('#forgotForm').submit();
+        }
+
+        $(document).ready(function () {
+            $('#forgotForm').on('submit', function (e) {
+                e.preventDefault();
+                var email = $("#email").val();
+                if (email == '') {
+                    $("#error-email").text("Email can't be empty");
+                    return;
+                } else {
+                    $("#error-email").text("");
+                }
+                const form = $(this);
+                if (typeof form.validate === "function") {
+                    form.validate();
+                    if (!form.valid()) {
+                        return;
+                    }
+                }
+
+                $("#loading-spinner").show();
+                $.ajax({
+                    url: 'http://localhost:5050/api/auth/forgot-send-otp',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(email),
+                    success: function (result) {
+                        if (result.status === 200) {
+                            var data = result.data;
+                            if (data && data.email) {
+                                window.location.href = `/verify?email=${data.email}&expires=${data.otpExpires}&isforgot=true`;
+                            } else {
+                                $('#error-email').text('Email is not available');
+                            }
+                        }else{
+                             $('#error-email').text(result.message);
+                        }
+                        $("#loading-spinner").hide();
+                    },
+                    error: function (error) {
+                        console.error("Error during OTP resend:", error);
+                        $("#error").text("An error occurred while resending the OTP. Please try again later.");
+                        $("#loading-spinner").hide();
+                    }
+                });
+            });
+        });
+    </script>
+}

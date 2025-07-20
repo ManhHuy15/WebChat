@@ -21,9 +21,9 @@ namespace ApiServices.Authen
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login( [FromBody] UserLoginRequestDTO userLogin)
+        public async Task<IActionResult> Login([FromBody] UserLoginRequestDTO userLogin)
         {
-            if(ModelState.IsValid == false) return BadRequest(ModelState);
+            if (ModelState.IsValid == false) return BadRequest(ModelState);
             try
             {
                 var result = await _authService.LoginHandler(userLogin);
@@ -113,7 +113,75 @@ namespace ApiServices.Authen
             {
                 return BadRequest(ex.Message);
             }
-          
+
+        }
+
+        [HttpPost("verify")]
+        public async Task<IActionResult> Verify([FromBody] VerifyOTPRequestDTO verifyOTP)
+        {
+            try
+            {
+                var respone = await _authService.VerifyOTP(verifyOTP);
+                return Ok(respone);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("resend-otp")]
+        public async Task<IActionResult> ResendOTP([FromBody] string email)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email))
+                {
+                    return BadRequest("Email is required.");
+                }
+                var user = await _authService.ResendOTP(email);
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("forgot-send-otp")]
+        public async Task<IActionResult> ForgotSendOtp([FromBody] string email)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email))
+                {
+                    return BadRequest("Email is required.");
+                }
+                var user = await _authService.ForgotSendOtp(email);
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO resetPassword)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var response = await _authService.ResetPassword(resetPassword);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
