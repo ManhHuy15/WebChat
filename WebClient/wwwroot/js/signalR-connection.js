@@ -1,6 +1,9 @@
 ﻿"use strict";
 $(function () {
-    if (IsLogin()) {
+   
+    window.ConnectHub = function () {
+        
+
         window.connection = new signalR.HubConnectionBuilder()
             .withUrl("http://localhost:5050/hubs/chat", {
                 withCredentials: false,
@@ -42,7 +45,9 @@ $(function () {
                 connection.start();
             }, 2000);
         });
+
     }
+    
     function getMyGroups() {
         $.ajax({
             url: "http://localhost:5050/api/Group/my-group",
@@ -59,5 +64,9 @@ $(function () {
             }
         })
     }
-      
+
+    if (IsLogin()) {
+        console.log("User is logged in");
+        ConnectHub();
+    }
 });

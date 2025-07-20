@@ -143,16 +143,7 @@ namespace Services.MessageServices
             var messages = await _messageRepository.GetChatList(userId);
             var groupList = await _groupRepository.GetMyGroupMember(userId);
 
-            if (messages == null || !messages.Any())
-            {
-                return new ResponseDTO<List<ChatItemDTO>>
-                {
-                    status = HttpStatusCode.OK,
-                    message = "No messages found",
-                    success = false,
-                    data = new List<ChatItemDTO>()
-                };
-            }
+            
 
             var chatList = messages.Select(x => new ChatItemDTO
             {
@@ -185,6 +176,17 @@ namespace Services.MessageServices
                                         .ToList();
 
             chatList.AddRange(groupItems);
+
+            if (!chatList.Any())
+            {
+                return new ResponseDTO<List<ChatItemDTO>>
+                {
+                    status = HttpStatusCode.OK,
+                    message = "No messages found",
+                    success = false,
+                    data = new List<ChatItemDTO>()
+                };
+            }
 
             chatList = chatList.OrderByDescending(x => x.Time).ToList();
 
