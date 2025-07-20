@@ -416,7 +416,7 @@
         $(checkboxElem).closest(".list-group-item").toggleClass("selected", isChecked);
 
         if (isChecked) {
-            if (!selectedContactIds.includes(contactId)) {s
+            if (!selectedContactIds.includes(contactId)) {
                 selectedContactIds.push(contactId);
             }
         } else {
@@ -825,7 +825,7 @@
 
 
     </script>
-    @await RenderSectionAsync("Scripts", required: false)
     <script src="~/js/signalR-connection.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

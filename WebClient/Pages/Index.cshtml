@@ -286,12 +286,22 @@
                             } else if (data[0].type == 1) {
                                 fetchMessageInGroup(data[0].id)
                             }
+                            ConnectHub();
                         } else {
                             $('#loading-spinner').hide();
                             $('#chat-messages').children().not('#loading-spinner').show();
                         }
                     } else {
                         console.error(result.message);
+                        $('#loading-spinner').hide();
+                        $('#chat-messages').children().not('#loading-spinner').show();
+                        var chatList = $('#chatList');
+                        var chatContent = $('#chat-content');
+                        chatList.empty();
+                        chatContent.empty();
+						var content = `<div class="list-group-item text-center text-muted">Your chat list is empty</div>`;
+                            chatContent.append(`<div class="list-group-item text-center text-muted">It seems like you haven't chat anyone yet.</div>`)
+						chatList.append(content);
                     }
                 },
                 error: function (error) {
