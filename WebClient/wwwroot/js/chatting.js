@@ -9,15 +9,54 @@ $('#chatList').on('click', '.chat-item', function (e) {
     $(this).addClass('active');
 });
 
+
+function checkSpam(reciverId) {
+    var messageSpam = `${reciverId}_${Date.now()}`;
+    var spamArr = sessionStorage.getItem("spamArr");
+
+    if (spamArr == null) {
+       sessionStorage.setItem("spamArr", JSON.stringify([messageSpam]));
+       return true;
+    }
+    
+    const sessionSpamArr = JSON.parse(spamArr);
+
+    var lastMessage = sessionSpamArr[sessionSpamArr.length - 1];
+    var lastMessageSplit = lastMessage.split('_');
+    if (lastMessageSplit[0] !== reciverId) {
+        sessionStorage.setItem("spamArr", JSON.stringify([messageSpam]));
+        return false;
+    }
+
+    if (sessionSpamArr.length < 2) {
+        sessionSpamArr.push(messageSpam);
+        sessionStorage.setItem("spamArr", JSON.stringify(sessionSpamArr));
+        return true;
+    }    
+   
+
+    var diffDate = Date.now() - parseInt(lastMessageSplit[1]);
+    if (diffDate < 30000) {
+        showNotification("Please don't spam message");
+        return false;
+    }
+    
+    sessionStorage.setItem("spamArr", JSON.stringify([messageSpam]));
+    
+    return true;
+}
+
 $('#btn-send').on('click', async function (e) {
     e.preventDefault();
     const reciverId = chatId.val();
     const typeChat = chatType.val();
     var chatList = $('#chat-messages');
     var message = $('#chat-input').val();
-
     if (!reciverId) return;
     if (message == '' && selectedFiles.length == 0) return;
+
+    if (!checkSpam(reciverId)) return;
+
     try {
         if (message != '') {
             var chatItem = $(` <div class="d-flex flex-column text-black align-items-end">
