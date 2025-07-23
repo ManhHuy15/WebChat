@@ -187,6 +187,19 @@ namespace Services.GroupServices
 
         public async Task<ResponseDTO<bool>> RemoveMemberFromGroup(int userId, int groupId)
         {
+            var groupMember = await _groupRepository.GetMembers(groupId);
+
+            if(groupMember.Count == 2)
+            {
+                return new ResponseDTO<bool>
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Your group has only two members left.",
+                    success = false,
+                    data = false
+                };
+            }
+
             var result = await _groupRepository.RemoveMemberFromGroup(userId, groupId);
             return new ResponseDTO<bool>
             {

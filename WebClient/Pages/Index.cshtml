@@ -723,18 +723,27 @@
         var btnRemove = "";
         var membersContainer = $('#members-group');
         members.forEach( member => {
+          
+
             if(chekkAdmin){
                 btnRemove = `<button class="btn btn-transparent shadow-none rounded-circle" onclick="RemoveFromGroup(${member.userId})">
                                     <i class="bi bi-x-circle-fill text-danger  fs-5"></i>
                             </button>`;
             }
+            if( +member.userId === +localStorage.getItem('id') ){
+                    btnRemove = `<div class="badge bg-primary" >
+                                    you
+                                </div>`
+            }
             const memberItem = $(`
                      <div class="list-group-item d-flex align-items-center justify-content-between chat-item p-2">
-                        <div class=" d-flex align-items-center">
+                        <div class="d-flex align-items-center">
                             <img src="${member.avatar}" alt="Avatar" class="avatar">
                             <span class="ms-2">${member.fullName}</span>
                         </div>
-                        ${btnRemove}
+                        <div class="w-25 text-center">
+                            ${btnRemove}
+                        </div>
                     </div>
             `);
             membersContainer.append(memberItem);
@@ -803,10 +812,13 @@
 			contentType: 'application/json',
 			success: function(res) {
                 if(res.success){
-
 				    manageMember(groupId);
                 }else{
-                    console.log("Remove member fails");
+					Swal.fire({
+						icon: 'error',
+						title: 'Error',
+						text: res.message || 'Failed to remove member.'
+					});
                 }
 			},
 			error: function(err) {

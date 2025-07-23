@@ -890,7 +890,11 @@
                     if (result.success) {
                         fetchMyGroups();
                     } else {
-                        console.error('Failed to leave group:', result.message);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: result.message || 'Failed to remove member.'
+                        });
                     }
                 },
                 error: function (error) {
