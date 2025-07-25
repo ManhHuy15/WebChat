@@ -11,5 +11,7 @@ namespace Repositories.GroupRepository
         Task<bool> AddMemberToGroup(List<GroupMember> groupMembers);
         Task<bool> UpdateGroup(Group group);
         Task<List<GroupMember>> GetMembers(int groupId);
+
+        Task<Group> GetCommonGroup(List<int> userIds);
     }
 }

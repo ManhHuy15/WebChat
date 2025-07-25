@@ -25,7 +25,7 @@ function checkSpam(reciverId) {
     var lastMessageSplit = lastMessage.split('_');
     if (lastMessageSplit[0] !== reciverId) {
         sessionStorage.setItem("spamArr", JSON.stringify([messageSpam]));
-        return false;
+        return true;
     }
 
     if (sessionSpamArr.length < 2) {

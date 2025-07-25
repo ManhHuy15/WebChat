@@ -24,8 +24,27 @@ namespace Services.GroupServices
             _messageRepository=messageRepository;
         }
 
-        public async Task<ResponseDTO<bool>> CreateGroup(GroupCreateDTO g)
+        public async Task<ResponseDTO<GroupBaseDTO>> CreateGroup(GroupCreateDTO g)
         {
+            var userIds = g.MemberIds.ToList();
+            userIds.Add(g.AdminId);
+            var group = await _groupRepository.GetCommonGroup(userIds);
+
+            if (group != null)
+            {
+                return new ResponseDTO<GroupBaseDTO>
+                {
+                    status = HttpStatusCode.Forbidden,
+                    message = $"A group with the same members already exists. You can use the {group.Name} group instead of creating a new one.",
+                    success = false,
+                    data = new GroupBaseDTO
+                    {
+                        Avatar = group.Avatar,
+                        GroupId = group.GroupId,
+                        Name = group.Name
+                    }
+                };
+            }
 
             var newGroup = new Group()
             {
@@ -48,12 +67,12 @@ namespace Services.GroupServices
 
             if (newGroupId < 0)
             {
-                return new ResponseDTO<bool>
+                return new ResponseDTO<GroupBaseDTO>
                 {
                     status = HttpStatusCode.OK,
                     message = "Fail to create group",
                     success = false,
-                    data = false
+                    data = new GroupBaseDTO()
                 };
             }
 
@@ -79,21 +98,26 @@ namespace Services.GroupServices
 
             if (!result)
             {
-                return new ResponseDTO<bool>
+                return new ResponseDTO<GroupBaseDTO>
                 {
                     status = HttpStatusCode.OK,
                     message = "Fail to add member to new group",
                     success = false,
-                    data = false
+                    data = new GroupBaseDTO()
                 };
             }
 
-            return new ResponseDTO<bool>
+            return new ResponseDTO<GroupBaseDTO>
             {
                 status = HttpStatusCode.OK,
                 message = "Create group successfully",
                 success = true,
-                data = true
+                data = new GroupBaseDTO
+                {
+                    Avatar = newGroup.Avatar,
+                    GroupId = newGroupId,
+                    Name = newGroup.Name
+                }
             };
         }
 
@@ -237,8 +261,30 @@ namespace Services.GroupServices
 
         }
 
-        public async Task<ResponseDTO<bool>> AddMembersToGroup(int groupId, AddMemberDTO members)
+        public async Task<ResponseDTO<GroupBaseDTO>> AddMembersToGroup(int groupId, AddMemberDTO members)
         {
+
+            var group = await _groupRepository.GetDetails(groupId);
+            var userIds = group.GroupMembers.Select(x => x.UserId).ToList();
+            userIds.AddRange(members.UserIds);
+            var Commongroup = await _groupRepository.GetCommonGroup(userIds);
+
+            if (Commongroup != null)
+            {
+                return new ResponseDTO<GroupBaseDTO>
+                {
+                    status = HttpStatusCode.Forbidden,
+                    message = $"A group with the same members already exists. You can use the {Commongroup.Name} group instead of creating a new one.",
+                    success = false,
+                    data = new GroupBaseDTO
+                    {
+                        Avatar = Commongroup.Avatar,
+                        GroupId = Commongroup.GroupId,
+                        Name = Commongroup.Name
+                    }
+                };
+            }
+
             var memberGroup = members.UserIds.Select(x => new GroupMember
             {
                 GroupId = groupId,
@@ -247,12 +293,17 @@ namespace Services.GroupServices
 
             var result = await _groupRepository.AddMemberToGroup(memberGroup);
 
-            var res = new ResponseDTO<bool>
+            var res = new ResponseDTO<GroupBaseDTO>
             {
                 status = HttpStatusCode.OK,
                 message = result ? "Success" : "Fail",
                 success = result,
-                data = result
+                data = new GroupBaseDTO
+                {
+                    Avatar = group.Avatar,
+                    GroupId = group.GroupId,
+                    Name = group.Name
+                }
             };
             return res;
         }

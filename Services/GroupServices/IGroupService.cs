@@ -9,9 +9,9 @@ namespace Services.GroupServices
         Task<List<GroupBaseDTO>> getMyGroups(int userId);
         Task<ResponseDTO<GroupInfoDTO>> getDetails(int userId, int groupId);
         Task<ResponseDTO<bool>> RemoveMemberFromGroup(int userId, int groupId);
-        Task<ResponseDTO<bool>> CreateGroup(GroupCreateDTO newGroup);
+        Task<ResponseDTO<GroupBaseDTO>> CreateGroup(GroupCreateDTO newGroup);
         Task<ResponseDTO<bool>> UpdateGroup(int groupId, GroupUpdateDTO group);
         Task<List<UserBaseDTO>> GetMembers(int groupId);
-        Task<ResponseDTO<bool>> AddMembersToGroup(int groupId, AddMemberDTO members);
+        Task<ResponseDTO<GroupBaseDTO>> AddMembersToGroup(int groupId, AddMemberDTO members);
     }
 }

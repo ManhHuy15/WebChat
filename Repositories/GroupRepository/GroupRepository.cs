@@ -24,5 +24,7 @@ namespace Repositories.GroupRepository
         public async Task<bool> UpdateGroup(Group group) => await _groupDAO.UpdateGroup(group);
 
         public async Task<List<GroupMember>> GetMembers(int groupId) => await _groupDAO.GetGroupMemberByCondition(gm => gm.GroupId == groupId).ToListAsync();
+
+        public async Task<Group> GetCommonGroup(List<int> userIds) => await _groupDAO.GetCommonGroup(userIds);
     }
 }

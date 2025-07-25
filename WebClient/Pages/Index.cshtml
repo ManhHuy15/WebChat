@@ -71,8 +71,7 @@
         overflow: hidden;
     }
 
-    .file-viewer-modal .modal-content::before {
-    .file-viewer-modal .modal-content::before {
+    .file-viewer-modal .modal-content::before{ 
         content: "";
         position: absolute;
         inset: 0;
@@ -692,7 +691,22 @@
             contentType: 'application/json',
             data: JSON.stringify({userIds: selectedContactIds}),
             success: function(res) {
-                $("#addMemberGroupModal").modal("hide");
+                if(res.success){
+                    $("#addMemberGroupModal").modal("hide");
+                }else{
+                    if(res.status == 403){
+                        var group = res.data;
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Create Group',
+                                text: res.message,
+                        });
+                        openChat(group.groupId,group.name, group.avatar,1);
+                        $("#addMemberGroupModal").modal("hide");
+                    }else{
+                        console.error("Error:", res.message);
+                    }
+                }
             },
             error: function(err) {
                 console.error("Error adding members:", err);

@@ -462,7 +462,19 @@
                     resetGroupModal();
                     $("#createGroupModal").modal("hide");
                 }else{
-                    console.error("Error:", result.message);
+                    if(result.status == 403){
+                        var group = result.data;
+						Swal.fire({
+							icon: 'info',
+							title: 'Create Group',
+							text: result.message,
+						});
+                        openChat(group.groupId,group.name, group.avatar,1);
+                        $("#createGroupModal").modal("hide");
+                    }else{
+
+                        console.error("Error:", result.message);
+                    }
                 }
                     
             },

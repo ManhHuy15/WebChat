@@ -1,4 +1,5 @@
 ﻿using BusinessObjects;
+using BusinessObjects.Migrations;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -105,6 +106,27 @@ namespace DataAccess
                 _context.Groups.Update(existingGroup);
                 await _context.SaveChangesAsync();
                 return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<Group> GetCommonGroup(List<int> userIds)
+        {
+            try
+            {
+                //var userIds = users.Select(u => u.UserId).ToList();
+
+                var group = await _context.Groups
+                    .Include(g => g.GroupMembers)
+                    .FirstOrDefaultAsync(g =>
+                        g.GroupMembers.Count == userIds.Count &&
+                        g.GroupMembers.All(m => userIds.Contains(m.UserId)) &&
+                        userIds.All(id => g.GroupMembers.Any(m => m.UserId == id))
+                    );
+                return group;
             }
             catch (Exception ex)
             {
