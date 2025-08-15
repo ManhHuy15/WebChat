@@ -211,6 +211,20 @@ namespace Services.GroupServices
 
         public async Task<ResponseDTO<bool>> RemoveMemberFromGroup(int userId, int groupId)
         {
+            var group = await _groupRepository.GetDetails(groupId);
+
+
+            if(group == null)
+            {
+                return new ResponseDTO<bool>
+                {
+                    status = HttpStatusCode.NotFound,
+                    message = "Group not found",
+                    success = false,
+                    data = false
+                };
+            }
+
             var groupMember = await _groupRepository.GetMembers(groupId);
 
             if(groupMember.Count == 2)
@@ -222,6 +236,18 @@ namespace Services.GroupServices
                     success = false,
                     data = false
                 };
+            }
+
+            if(group.AdminId == userId)
+            {
+                
+                var newAdmin = groupMember.FirstOrDefault(x => x.UserId != userId);
+
+                if (newAdmin != null)
+                {
+                    group.AdminId = newAdmin.UserId;
+                    await _groupRepository.UpdateGroup(group);
+                }
             }
 
             var result = await _groupRepository.RemoveMemberFromGroup(userId, groupId);
